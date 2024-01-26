@@ -53,8 +53,8 @@ def guinepGo(scripts: Map[String, Script]): Unit = {
     contents = new BorderPanel {
       layout(new ScrollPane(scriptList)) = BorderPanel.Position.West
       layout(mainPanel) = BorderPanel.Position.Center
-      minimumSize = new Dimension(400, 300)
     }
+    minimumSize = new Dimension(600, 450)
 
     // Handle script list selection
     scriptList.selection.reactions += {
