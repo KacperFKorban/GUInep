@@ -6,7 +6,8 @@ Code example:
 ```scala
 import guinep.*
 
-def upperCaseText(text: String): String = text.toUpperCase
+def upperCaseText(text: String): String =
+  text.toUpperCase
 
 @main
 def run =

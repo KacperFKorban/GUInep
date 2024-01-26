@@ -7,7 +7,8 @@ def personsAge(name: String): Int = name match {
   case _ => 0
 }
 
-def upperCaseText(text: String): String = text.toUpperCase
+def upperCaseText(text: String): String =
+  text.toUpperCase
 
 @main
 def run: Unit =
