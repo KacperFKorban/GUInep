@@ -15,3 +15,7 @@ def upperCaseText(text: String): String =
 def run =
   guinep(upperCaseText)
 ```
+
+Demo:
+
+https://github.com/KacperFKorban/guinep/assets/39772805/558c482a-3b91-4246-bbdb-cfda8b3b5d4c
