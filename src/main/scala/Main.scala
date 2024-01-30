@@ -10,6 +10,12 @@ def personsAge(name: String): Int = name match {
 def upperCaseText(text: String): String =
   text.toUpperCase
 
+def add(a: Int, b: Int) =
+  a + b
+
+def concat(a: String, b: String) =
+  a + b
+
 @main
 def run: Unit =
-  guinep(personsAge, upperCaseText)
+  guinep(personsAge, upperCaseText, add, concat)

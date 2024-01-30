@@ -75,7 +75,10 @@ class Macros(using Quotes) {
             l.select("apply").appliedToArgs(
               functionParamTypes(f).zipWithIndex.map { case (paramTpe, i) =>
                 val param = params.select("apply").appliedTo(Literal(IntConstant(i)))
-                param.select("asInstanceOf").appliedToType(paramTpe)
+                paramTpe match {
+                  case ntpe: NamedType if ntpe.name == "String" => param.select("asInstanceOf").appliedToType(ntpe)
+                  case ntpe: NamedType if ntpe.name == "Int" => '{ ${param.asExprOf[Any]}.asInstanceOf[String].toInt }.asTerm
+                }
               }.toList
             ).select("toString").appliedToNone
           }

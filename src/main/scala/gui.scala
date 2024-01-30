@@ -49,7 +49,7 @@ def guinepGo(scripts: Map[String, Script]): Unit = {
   }
 
   val frame = new MainFrame {
-    title = "Script Runner"
+    title = "GUInep"
     contents = new BorderPanel {
       layout(new ScrollPane(scriptList)) = BorderPanel.Position.West
       layout(mainPanel) = BorderPanel.Position.Center
