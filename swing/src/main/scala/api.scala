@@ -1,6 +1,6 @@
 package guinep
 
-inline def swing(inline scripts: Any*): Unit =
+transparent inline def swing(inline scripts: Any*): Unit =
   val scriptInfos = internal.scriptInfos(scripts)
   val scriptInfosMap = scriptInfos.groupBy(_.name)
   if scriptInfosMap.exists(_._2.size > 1) then

@@ -1,10 +1,8 @@
 package guinep.internal
 
 import scala.quoted.*
-import javax.crypto.Mac
-import scala.annotation.meta.param
 
-inline def scriptInfos(inline fs: Any): Seq[Script] =
+transparent inline def scriptInfos(inline fs: Any): Seq[Script] =
   ${ Macros.scriptInfosImpl('fs) }
 
 object Macros {
@@ -66,27 +64,40 @@ class Macros(using Quotes) {
     )
   }
 
-  private def functionRunImpl(f: Expr[Any]): Expr[List[Any] => String] = {
+  /*
+   * This function is used to chain a List[Either[String, ?]] into a single Either[String, List[?]], dealing with Terms
+   */
+  private def chainEitherTermsToList(eithers: List[Term]): Term = eithers match {
+    case Nil => '{ Right(Nil) }.asTerm
+    case x :: xs =>
+      val rest = chainEitherTermsToList(xs)
+      '{ ${x.asExprOf[Either[String, ?]]}.flatMap { v => ${rest.asExprOf[Either[String, List[?]]]}.map { vs => v :: vs } } }.asTerm
+  }
+
+  private def functionRunImpl(f: Expr[Any]): Expr[List[String] => String] = {
     val fTerm = f.asTerm
     f.asTerm match {
       case l@Lambda(params, body) =>
-        /* (params: List[Any]) => l.apply(params(0).asInstanceOf[String], params(1).asInstanceOf[Int], ...) */
+        /* (params: List[Any]) => l.apply(params(0).asInstanceOf[String], params(1).toInt, ...) */
         Lambda(
           Symbol.spliceOwner,
-          MethodType(List("inputs"))(_ => List(TypeRepr.of[List[Any]]),  _ => TypeRepr.of[String]),
+          MethodType(List("inputs"))(_ => List(TypeRepr.of[List[String]]),  _ => TypeRepr.of[String]),
           { case (sym, List(params: Term)) =>
-            l.select("apply").appliedToArgs(
-              functionParams(f).zipWithIndex.map { case (valdef, i) =>
-                val paramTpe = valdef.tpt.tpe
-                val param = params.select("apply").appliedTo(Literal(IntConstant(i)))
-                paramTpe match {
-                  case ntpe: NamedType if ntpe.name == "String" => param.select("asInstanceOf").appliedToType(ntpe)
-                  case ntpe: NamedType if ntpe.name == "Int" => '{ ${param.asExprOf[Any]}.asInstanceOf[String].toInt }.asTerm
-                }
-              }.toList
-            ).select("toString").appliedToNone
+            val aply = l.select("apply")
+            val args = functionParams(f).zipWithIndex.map { case (valdef, i) =>
+            val paramTpe = valdef.tpt.tpe
+            val paramName = valdef.name
+              val param = params.select("apply").appliedTo(Literal(IntConstant(i)))
+              val compiletimeModule = Symbol.requiredModule("scala.compiletime")
+              val summonInlineTerm = Select.unique(Ref(compiletimeModule), "summonInline")
+              val deserializerAppTpe = AppliedType(TypeRepr.of[Deserializer], List(paramTpe))
+              val deserializerInstanceTerm = summonInlineTerm.appliedToType(deserializerAppTpe)
+              deserializerInstanceTerm.select("deserialize").appliedTo(param)
+            }.toList
+            val argsGet = args.map(_.select("right").select("get"))
+            aply.appliedToArgs(argsGet).select("toString").appliedToNone
           }
-        ).asExprOf[List[Any] => String]
+        ).asExprOf[List[String] => String]
       case _ =>
         wrongParamsListError(f)
     }
