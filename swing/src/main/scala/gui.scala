@@ -4,11 +4,11 @@ import scala.swing._
 import scala.swing.event._
 import java.awt.Color
 
-def guinep(scripts: Map[String, Script]): Unit = {
-  Swing.onEDT(guinepGo(scripts))
+def genSwing(scripts: Map[String, Script]): Unit = {
+  Swing.onEDT(genSwingGo(scripts))
 }
 
-def guinepGo(scripts: Map[String, Script]): Unit = {
+def genSwingGo(scripts: Map[String, Script]): Unit = {
   // GUI Components
   val scriptList = new ListView(scripts.keys.toList)
   val mainPanel = new BoxPanel(Orientation.Vertical)
