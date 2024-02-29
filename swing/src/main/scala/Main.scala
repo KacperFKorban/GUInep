@@ -1,7 +1,5 @@
 package guinep.testrun
 
-import guinep.*
-
 def personsAge(name: String): Int = name match {
   case "Bartek" => 20
   case _ => 0
@@ -18,4 +16,4 @@ def concat(a: String, b: String) =
 
 @main
 def run: Unit =
-  guinep(personsAge, upperCaseText, add, concat)
+  guinep.swing(personsAge, upperCaseText, add, concat)
