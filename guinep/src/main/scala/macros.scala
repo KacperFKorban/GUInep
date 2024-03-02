@@ -2,6 +2,7 @@ package guinep.internal
 
 import scala.quoted.*
 import javax.crypto.Mac
+import scala.annotation.meta.param
 
 inline def scriptInfos(inline fs: Any): Seq[Script] =
   ${ Macros.scriptInfosImpl('fs) }
@@ -44,19 +45,21 @@ class Macros(using Quotes) {
     Expr(name)
   }
 
-  private def functionParamTypes(f: Expr[Any]): Seq[TypeRepr] = f.asTerm match {
+  private def functionParams(f: Expr[Any]): Seq[ValDef] = f.asTerm match {
     case Lambda(params, body) =>
-      params.map (param => param.tpt.tpe)
+      params.map (param => param)
     case _ =>
       wrongParamsListError(f)
   }
 
-  private def functionFieldsImpl(f: Expr[Any]): Expr[Seq[FieldType]] = {
+  private def functionInputsImpl(f: Expr[Any]): Expr[Seq[Input]] = {
     Expr.ofSeq(
-      functionParamTypes(f).map { paramType =>
+      functionParams(f).map { valdef =>
+        val paramType = valdef.tpt.tpe
+        val paramName = valdef.name
         paramType match {
-          case ntpe: NamedType if ntpe.name == "String" => '{ FieldType.String }
-          case ntpe: NamedType if ntpe.name == "Int" => '{ FieldType.Int }
+          case ntpe: NamedType if ntpe.name == "String" => '{ Input(${Expr(paramName)}, FieldType.String) }
+          case ntpe: NamedType if ntpe.name == "Int" => '{ Input(${Expr(paramName)}, FieldType.Int) }
           case t => unsupportedFunctionParamType(paramType, f.asTerm.pos)
         }
       }
@@ -73,7 +76,8 @@ class Macros(using Quotes) {
           MethodType(List("inputs"))(_ => List(TypeRepr.of[List[Any]]),  _ => TypeRepr.of[String]),
           { case (sym, List(params: Term)) =>
             l.select("apply").appliedToArgs(
-              functionParamTypes(f).zipWithIndex.map { case (paramTpe, i) =>
+              functionParams(f).zipWithIndex.map { case (valdef, i) =>
+                val paramTpe = valdef.tpt.tpe
                 val param = params.select("apply").appliedTo(Literal(IntConstant(i)))
                 paramTpe match {
                   case ntpe: NamedType if ntpe.name == "String" => param.select("asInstanceOf").appliedToType(ntpe)
@@ -100,7 +104,7 @@ class Macros(using Quotes) {
 
   def scriptInfoImpl(f: Expr[Any]): Expr[Script] = {
     val name = functionNameImpl(f)
-    val params = functionFieldsImpl(f)
+    val params = functionInputsImpl(f)
     val run = functionRunImpl(f)
     '{ Script($name, $params, $run) }
   }

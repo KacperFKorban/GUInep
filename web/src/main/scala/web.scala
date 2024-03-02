@@ -110,7 +110,7 @@ class WebServer(val scripts: Map[String, Script]) {
     scripts
       .toSeq
       .map { case (name, script) =>
-        s"""["$name", [${script.inputs.map(i => "\"" + i + "\"").mkString(",")}]]"""
+        s"""["$name", [${script.inputs.map(i => s""""${i.name}"""").mkString(",")}]]"""
       }
       .mkString("[", ",", "]")
 
