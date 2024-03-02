@@ -38,13 +38,11 @@ class WebServer(val scripts: Map[String, Script]) {
   def generateHtml =
     html(
       head(
-        // h1("Dynamic Form Based on URL Path"),
+        title("GUInep"),
         script(Dom.raw(jsToChangeFormBasedOnPath)),
-        // script(src := "/path/to/your/script.js"),
-        // link(rel := "stylesheet", href := "/path/to/your/styles.css")
       ),
       body(
-        onLoadAttr := "initFormBasedOnPath();", // Call the initialization function when the page loads
+        onLoadAttr := "initFormBasedOnPath();",
         div(
           classAttr := List("sidebar"), {
             for
