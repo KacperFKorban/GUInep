@@ -24,10 +24,9 @@ class WebServer(val scripts: Map[String, Script]) {
       handler { (req: Request) =>
         for {
           form <- req.body.asURLEncodedForm
-          _ <- ZIO.debug(form)
           formMap = form.formData.map(fd => fd.name -> fd).toMap
-          scriptName = formMap.get("name").get.stringValue.get
-          inputsData = formMap.removed("name").toSeq.map(_._2)
+          scriptName = formMap.get("script@name").get.stringValue.get
+          inputsData = formMap.removed("script@name").toSeq.map(_._2)
           script = scripts(scriptName)
           inputsValues = inputsData.map { (v: FormField) => v.stringValue.get }.toList
           result = script.run(inputsValues)
@@ -105,7 +104,7 @@ class WebServer(val scripts: Map[String, Script]) {
         // add the script name as a hidden input
         const nameInput = document.createElement('input');
         nameInput.type = 'hidden';
-        nameInput.name = "name";
+        nameInput.name = "script@name";
         nameInput.value = scriptName;
         form.appendChild(nameInput);
         // add the script inputs as text inputs
