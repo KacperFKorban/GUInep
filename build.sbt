@@ -28,22 +28,18 @@ val commonSettings = Seq(
   )
 )
 
-lazy val root =
-  project
-    .in(file("."))
-    .settings(
-      name := "GUInep-root",
-      publish / skip := true
-    )
-    .aggregate((guinep.projectRefs ++ swing.projectRefs ++ web.projectRefs): _*)
+lazy val root = project
+  .in(file("."))
+  .settings(
+    name := "GUInep-root",
+    publish / skip := true
+  )
+  .aggregate((guinep.projectRefs ++ swing.projectRefs ++ web.projectRefs): _*)
 
 lazy val guinep = projectMatrix
   .in(file("guinep"))
   .settings(
-    name := "GUInep",
-    libraryDependencies ++= Seq(
-      "com.lihaoyi" %% "pprint" % "0.8.1"
-    )
+    name := "GUInep"
   )
   .jvmPlatform(scalaVersions = List(scala3))
 
