@@ -39,6 +39,18 @@ class WebServer(val scripts: Map[String, Script]) {
     html(
       head(
         title("GUInep"),
+        style("""
+          body { font-family: Arial, sans-serif; }
+          .sidebar { position: fixed; left: 0; top: 0; width: 200px; height: 100vh; background-color: #f0f0f0; padding: 20px; }
+          .sidebar a { display: block; padding: 10px; margin-bottom: 10px; background-color: #007bff; color: white; text-decoration: none; text-align: center; border-radius: 5px; }
+          .sidebar a:hover { background-color: #0056b3; }
+          .main-content { margin-left: 220px; padding: 20px; }
+          .form-input { margin-bottom: 10px; }
+          label { display: block; margin-bottom: 5px; }
+          input[type=text] { width: 100%; padding: 8px; margin-bottom: 20px; box-sizing: border-box; }
+          input[type=submit] { background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+          input[type=submit]:hover { background-color: #45a049; }
+        """),
         script(Dom.raw(jsToChangeFormBasedOnPath)),
       ),
       body(
