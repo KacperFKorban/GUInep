@@ -1,4 +1,4 @@
-val scala3 = "3.3.1"
+val scala3 = "3.3.3"
 
 val commonSettings = Seq(
   organization := "dev.korban",
@@ -35,17 +35,27 @@ lazy val root =
       name := "GUInep-root",
       publish / skip := true
     )
-    .aggregate((guinep.projectRefs ++ swing.projectRefs): _*)
+    .aggregate((guinep.projectRefs ++ swing.projectRefs ++ web.projectRefs): _*)
 
 lazy val guinep = projectMatrix
   .in(file("guinep"))
   .settings(
     name := "GUInep",
     libraryDependencies ++= Seq(
-      "com.lihaoyi" %% "pprint" % "0.8.1",
-      "org.scalameta" %% "munit" % "0.7.29" % Test
+      "com.lihaoyi" %% "pprint" % "0.8.1"
     )
   )
+  .jvmPlatform(scalaVersions = List(scala3))
+
+lazy val web = projectMatrix
+  .in(file("web"))
+  .settings(
+    name := "GUInep-web",
+    libraryDependencies ++= Seq(
+      "dev.zio" %% "zio-http" % "3.0.0-RC4"
+    )
+  )
+  .dependsOn(guinep)
   .jvmPlatform(scalaVersions = List(scala3))
 
 lazy val swing = projectMatrix
@@ -53,8 +63,7 @@ lazy val swing = projectMatrix
   .settings(
     name := "GUInep-swing",
     libraryDependencies ++= Seq(
-      "org.scala-lang.modules" %% "scala-swing" % "3.0.0",
-      "org.scalameta" %% "munit" % "0.7.29" % Test
+      "org.scala-lang.modules" %% "scala-swing" % "3.0.0"
     )
   )
   .dependsOn(guinep)
