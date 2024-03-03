@@ -2,7 +2,7 @@
 
 > Guinep are small tropical fruits from the Caribbean and Central/Southern America. They are described to taste like a cross between Lime and Lychee. 
 
-PoC library to turn Scala functions into gui forms with a single line of code.
+PoC library to turn Scala 3 functions into UI forms with a single line of code.
 
 Code example:
 ```scala
@@ -11,9 +11,9 @@ def upperCaseText(text: String): String =
 
 @main
 def run =
-  guinep.swing(upperCaseText)
+  guinep.web(upperCaseText)
 ```
 
 Demo:
 
-https://github.com/KacperFKorban/guinep/assets/39772805/b288b8e4-a068-4455-9fa5-073286b82af8
+![GUInep_web_first_demo](https://github.com/KacperFKorban/GUInep/assets/39772805/4e5cf326-2715-49c5-822c-802355818c39)
