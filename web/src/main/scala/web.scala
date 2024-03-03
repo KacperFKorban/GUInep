@@ -4,7 +4,7 @@ import guinep.*
 import zio.*
 import zio.http.*
 import zio.http.template.*
-import io.netty.handler.codec.http.QueryStringDecoder
+import zio.http.codec.*
 
 def genWeb(scripts: Map[String, Script]): Unit = {
   val ws = WebServer(scripts)
@@ -16,6 +16,8 @@ def genWeb(scripts: Map[String, Script]): Unit = {
 
 class WebServer(val scripts: Map[String, Script]) {
   val app: HttpApp[Any] = Routes(
+    Method.GET / PathCodec.empty ->
+      handler(Response.redirect(URL.root / "scripts", isPermanent = true)),
     Method.GET / "scripts" ->
       handler(Response.html(generateHtml)),
     Method.GET / "scripts" / string("name") ->
@@ -33,6 +35,9 @@ class WebServer(val scripts: Map[String, Script]) {
         } yield Response.text(result)
       }
   ).sandbox.toHttpApp
+
+  def run =
+    Server.serve(app).provide(Server.defaultWithPort(8090))
 
   def generateHtml =
     html(
@@ -130,6 +135,4 @@ class WebServer(val scripts: Map[String, Script]) {
         s"""["$name", [${script.inputs.map(i => s""""${i.name}"""").mkString(",")}]]"""
       }
       .mkString("[", ",", "]")
-
-  def run = Server.serve(app).provide(Server.defaultWithPort(8090))
 }
