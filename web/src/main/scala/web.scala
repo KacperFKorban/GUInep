@@ -44,7 +44,8 @@ class WebServer(val scripts: Map[String, Script]) {
           .sidebar { position: fixed; left: 0; top: 0; width: 200px; height: 100vh; background-color: #f0f0f0; padding: 20px; }
           .sidebar a { display: block; padding: 10px; margin-bottom: 10px; background-color: #007bff; color: white; text-decoration: none; text-align: center; border-radius: 5px; }
           .sidebar a:hover { background-color: #0056b3; }
-          .main-content { margin-left: 220px; padding: 20px; }
+          .main-content { margin-left: 220px; padding: 20px; display: flex; justify-content: center; padding-top: 20px; }
+          .form-container { width: 300px; }
           .form-input { margin-bottom: 10px; }
           label { display: block; margin-bottom: 5px; }
           input[type=text] { width: 100%; padding: 8px; margin-bottom: 20px; box-sizing: border-box; }
@@ -69,10 +70,13 @@ class WebServer(val scripts: Map[String, Script]) {
         ),
         div(
           classAttr := List("main-content"),
-          form(
-            id := "scriptForm",
-            methodAttr := "post",
-            actionAttr := "/run"
+          div(
+            classAttr := List("form-container"),
+            form(
+              id := "scriptForm",
+              methodAttr := "post",
+              actionAttr := "/run"
+            )
           )
         )
       )
@@ -94,6 +98,10 @@ class WebServer(val scripts: Map[String, Script]) {
       const selectedScript = scripts.find(script => script[0] === scriptName);
       
       if (selectedScript) {
+        // add name title to the top of the form
+        const nameTitle = document.createElement('h1');
+        nameTitle.innerText = scriptName;
+        form.appendChild(nameTitle);
         // add the script name as a hidden input
         const nameInput = document.createElement('input');
         nameInput.type = 'hidden';
