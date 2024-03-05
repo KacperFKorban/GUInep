@@ -25,12 +25,12 @@ class WebServer(val scripts: Map[String, Script]) {
     Method.POST / "run" ->
       handler { (req: Request) =>
         for {
-          form <- req.body.asURLEncodedForm
+          form <- req.body.asMultipartForm
           formMap = form.formData.map(fd => fd.name -> fd).toMap
-          scriptName = formMap.get("script@name").get.stringValue.get
+          scriptName <- formMap.get("script@name").get.asText
           inputsData = formMap.removed("script@name").toSeq.map(_._2)
           script = scripts(scriptName)
-          inputsValues = inputsData.map { (v: FormField) => v.stringValue.get }.toList
+          inputsValues <- ZIO.foreach(inputsData.toList) { (v: FormField) => v.asText }
           result = script.run(inputsValues)
         } yield Response.text(result)
       }
@@ -43,7 +43,8 @@ class WebServer(val scripts: Map[String, Script]) {
     html(
       head(
         title("GUInep"),
-        style("""
+        style(
+          """
           body { font-family: Arial, sans-serif; }
           .sidebar { position: fixed; left: 0; top: 0; width: 200px; height: 100vh; background-color: #f0f0f0; padding: 20px; }
           .sidebar a { display: block; padding: 10px; margin-bottom: 10px; background-color: #007bff; color: white; text-decoration: none; text-align: center; border-radius: 5px; }
@@ -55,7 +56,9 @@ class WebServer(val scripts: Map[String, Script]) {
           input[type=text] { width: 100%; padding: 8px; margin-bottom: 20px; box-sizing: border-box; }
           input[type=submit] { background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
           input[type=submit]:hover { background-color: #45a049; }
-        """),
+          .result { margin-top: 20px; font-weight: bold; }
+          """
+        ),
         script(Dom.raw(jsToChangeFormBasedOnPath)),
       ),
       body(
@@ -80,7 +83,8 @@ class WebServer(val scripts: Map[String, Script]) {
               id := "scriptForm",
               methodAttr := "post",
               actionAttr := "/run"
-            )
+            ),
+            div(id := "result", classAttr := List("result"))
           )
         )
       )
@@ -112,6 +116,8 @@ class WebServer(val scripts: Map[String, Script]) {
         nameInput.name = "script@name";
         nameInput.value = scriptName;
         form.appendChild(nameInput);
+        const br = document.createElement('br');
+        form.appendChild(br);
         // add the script inputs as text inputs
         selectedScript[1].forEach(inputName => {
           const input = document.createElement('input');
@@ -119,6 +125,7 @@ class WebServer(val scripts: Map[String, Script]) {
           input.name = inputName;
           input.placeholder = inputName;
           form.appendChild(input);
+          form.appendChild(br.cloneNode());
         });
         const submitButton = document.createElement('input');
         submitButton.type = 'submit';
@@ -126,6 +133,21 @@ class WebServer(val scripts: Map[String, Script]) {
         form.appendChild(submitButton);
       }
     }
+    document.addEventListener("DOMContentLoaded", function() {
+      document.getElementById("scriptForm").addEventListener("submit", function(e) {
+        e.preventDefault(); // Prevent the default form submission and redirect
+        const formData = new FormData(e.target);
+        fetch("/run", {
+          method: "POST",
+          body: formData
+        })
+        .then(response => response.text())
+        .then(data => {
+          document.getElementById("result").textContent = 'Result: ' + data;
+        })
+        .catch(error => console.error('Error:', error));
+      });
+    });
     """
 
   def scriptsToJsonArray: String =
