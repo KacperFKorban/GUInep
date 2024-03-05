@@ -25,12 +25,12 @@ class WebServer(val scripts: Map[String, Script]) {
     Method.POST / "run" ->
       handler { (req: Request) =>
         for {
-          form <- req.body.asURLEncodedForm
+          form <- req.body.asMultipartForm
           formMap = form.formData.map(fd => fd.name -> fd).toMap
-          scriptName = formMap.get("script@name").get.stringValue.get
+          scriptName <- formMap.get("script@name").get.asText
           inputsData = formMap.removed("script@name").toSeq.map(_._2)
           script = scripts(scriptName)
-          inputsValues = inputsData.map { (v: FormField) => v.stringValue.get }.toList
+          inputsValues <- ZIO.foreach(inputsData.toList) { (v: FormField) => v.asText }
           result = script.run(inputsValues)
         } yield Response.text(result)
       }
@@ -55,6 +55,7 @@ class WebServer(val scripts: Map[String, Script]) {
           input[type=text] { width: 100%; padding: 8px; margin-bottom: 20px; box-sizing: border-box; }
           input[type=submit] { background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
           input[type=submit]:hover { background-color: #45a049; }
+          .result { margin-top: 20px; font-weight: bold; }
         """),
         script(Dom.raw(jsToChangeFormBasedOnPath)),
       ),
@@ -80,7 +81,8 @@ class WebServer(val scripts: Map[String, Script]) {
               id := "scriptForm",
               methodAttr := "post",
               actionAttr := "/run"
-            )
+            ),
+            div(id := "result", classAttr := List("result"))
           )
         )
       )
@@ -126,6 +128,21 @@ class WebServer(val scripts: Map[String, Script]) {
         form.appendChild(submitButton);
       }
     }
+    document.addEventListener("DOMContentLoaded", function() {
+      document.getElementById("scriptForm").addEventListener("submit", function(e) {
+        e.preventDefault(); // Prevent the default form submission and redirect
+        const formData = new FormData(e.target);
+        fetch("/run", {
+          method: "POST",
+          body: formData
+        })
+        .then(response => response.text())
+        .then(data => {
+          document.getElementById("result").textContent = 'Result: ' + data;
+        })
+        .catch(error => console.error('Error:', error));
+      });
+    });
     """
 
   def scriptsToJsonArray: String =
