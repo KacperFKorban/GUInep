@@ -43,7 +43,8 @@ class WebServer(val scripts: Map[String, Script]) {
     html(
       head(
         title("GUInep"),
-        style("""
+        style(
+          """
           body { font-family: Arial, sans-serif; }
           .sidebar { position: fixed; left: 0; top: 0; width: 200px; height: 100vh; background-color: #f0f0f0; padding: 20px; }
           .sidebar a { display: block; padding: 10px; margin-bottom: 10px; background-color: #007bff; color: white; text-decoration: none; text-align: center; border-radius: 5px; }
@@ -56,7 +57,8 @@ class WebServer(val scripts: Map[String, Script]) {
           input[type=submit] { background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
           input[type=submit]:hover { background-color: #45a049; }
           .result { margin-top: 20px; font-weight: bold; }
-        """),
+          """
+        ),
         script(Dom.raw(jsToChangeFormBasedOnPath)),
       ),
       body(
@@ -114,6 +116,8 @@ class WebServer(val scripts: Map[String, Script]) {
         nameInput.name = "script@name";
         nameInput.value = scriptName;
         form.appendChild(nameInput);
+        const br = document.createElement('br');
+        form.appendChild(br);
         // add the script inputs as text inputs
         selectedScript[1].forEach(inputName => {
           const input = document.createElement('input');
@@ -121,6 +125,7 @@ class WebServer(val scripts: Map[String, Script]) {
           input.name = inputName;
           input.placeholder = inputName;
           form.appendChild(input);
+          form.appendChild(br.cloneNode());
         });
         const submitButton = document.createElement('input');
         submitButton.type = 'submit';
