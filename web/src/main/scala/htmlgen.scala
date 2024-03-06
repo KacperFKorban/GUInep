@@ -22,11 +22,11 @@ trait HtmlGen {
           .sidebar { position: fixed; left: 0; top: 0; width: 200px; height: 100vh; background-color: #f0f0f0; padding: 20px; }
           .sidebar a { display: block; padding: 10px; margin-bottom: 10px; background-color: #007bff; color: white; text-decoration: none; text-align: center; border-radius: 5px; }
           .sidebar a:hover { background-color: #0056b3; }
-          .main-content { margin-left: 220px; padding: 20px; display: flex; justify-content: center; padding-top: 20px; }
+          .main-content { margin-left: 232px; padding: 40px; display: flex; justify-content: center; padding-top: 20px; }
           .form-container { width: 300px; }
           .form-input { margin-bottom: 10px; }
-          label { display: block; margin-bottom: 5px; }
-          input:not([type=submit]) { width: 100%; padding: 8px; margin-bottom: 20px; box-sizing: border-box; }
+          label { display: inline-block; margin-right: 10px; vertical-align: middle; }
+          input:not([type=submit]) { display: inline-block; padding: 8px; margin-bottom: 10px; box-sizing: border-box; }
           input[type=submit] { background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
           input[type=submit]:hover { background-color: #45a049; }
           .result { margin-top: 20px; font-weight: bold; }
@@ -91,7 +91,7 @@ trait HtmlGen {
           form.appendChild(br.cloneNode());
         } else {
           const label = document.createElement('label');
-          label.innerText = formElem.name;
+          label.innerText = formElem.name + ': ';
           label.for = formElem.name;
           form.appendChild(label);
           const input = document.createElement('input');
