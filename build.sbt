@@ -1,7 +1,7 @@
 val scala3 = "3.3.3"
 
 val commonSettings = Seq(
-  organization := "dev.korban",
+  organization := "io.github.kacperfkorban",
   description := "PoC library to turn Scala 3 functions into UI forms with a single line of code",
   homepage := Some(url("https://github.com/KacperFKorban/GUInep")),
   licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
@@ -14,7 +14,6 @@ val commonSettings = Seq(
     )
   ),
   scalaVersion := scala3,
-  // TODO(kπ) enable all macro checks
   scalacOptions ++= Seq(
     // "-Xcheck-macros",
     // "-Ycheck:inlining",
@@ -30,6 +29,7 @@ val commonSettings = Seq(
 
 lazy val root = project
   .in(file("."))
+  .settings(commonSettings)
   .settings(
     name := "GUInep-root",
     publish / skip := true
@@ -38,6 +38,7 @@ lazy val root = project
 
 lazy val guinep = projectMatrix
   .in(file("guinep"))
+  .settings(commonSettings)
   .settings(
     name := "GUInep"
   )
@@ -45,6 +46,7 @@ lazy val guinep = projectMatrix
 
 lazy val web = projectMatrix
   .in(file("web"))
+  .settings(commonSettings)
   .settings(
     name := "GUInep-web",
     libraryDependencies ++= Seq(
