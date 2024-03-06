@@ -34,7 +34,7 @@ lazy val root = project
     name := "GUInep-root",
     publish / skip := true
   )
-  .aggregate((guinep.projectRefs ++ swing.projectRefs ++ web.projectRefs): _*)
+  .aggregate((guinep.projectRefs ++ web.projectRefs): _*)
 
 lazy val guinep = projectMatrix
   .in(file("guinep"))
@@ -50,17 +50,6 @@ lazy val web = projectMatrix
     libraryDependencies ++= Seq(
       "dev.zio" %% "zio-http" % "3.0.0-RC4",
       "dev.zio" %% "zio-json" % "0.6.2"
-    )
-  )
-  .dependsOn(guinep)
-  .jvmPlatform(scalaVersions = List(scala3))
-
-lazy val swing = projectMatrix
-  .in(file("swing"))
-  .settings(
-    name := "GUInep-swing",
-    libraryDependencies ++= Seq(
-      "org.scala-lang.modules" %% "scala-swing" % "3.0.0"
     )
   )
   .dependsOn(guinep)
