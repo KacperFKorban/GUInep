@@ -5,12 +5,8 @@ import zio.*
 import zio.http.*
 import zio.http.template.*
 import zio.http.codec.*
-import zio.json.*
-import scala.util.chaining.*
-import zio.json.ast.*
-import zio.json.ast.Json.*
 
-trait HtmlGen {
+private[guinep] trait HtmlGen {
   val scripts: Map[String, Script]
   def generateHtml =
     html(

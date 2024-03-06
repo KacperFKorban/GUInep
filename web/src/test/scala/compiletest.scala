@@ -1,4 +1,4 @@
-package guinep.testrun
+package guinep.compiletest
 
 def personsAge(name: String): Int = name match {
   case "Bartek" => 20
