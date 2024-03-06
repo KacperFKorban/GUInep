@@ -16,4 +16,4 @@ def run =
 
 Demo:
 
-![GUInep_web_first_demo](https://github.com/KacperFKorban/GUInep/assets/39772805/4e5cf326-2715-49c5-822c-802355818c39)
+![GUInep_classes_demo](https://github.com/KacperFKorban/GUInep/assets/39772805/556b6c1b-ea72-4089-8cbd-16f680484177)
