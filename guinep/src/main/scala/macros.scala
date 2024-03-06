@@ -1,8 +1,6 @@
 package guinep.internal
 
 import scala.quoted.*
-import javax.crypto.Mac
-import scala.annotation.meta.param
 
 inline def scriptInfos(inline fs: Any): Seq[Script] =
   ${ Macros.scriptInfosImpl('fs) }
@@ -52,14 +50,15 @@ class Macros(using Quotes) {
       wrongParamsListError(f)
   }
 
-  private def functionInputsImpl(f: Expr[Any]): Expr[Seq[Input]] = {
+  private def functionFormElementsImpl(f: Expr[Any]): Expr[Seq[FormElement]] = {
     Expr.ofSeq(
       functionParams(f).map { valdef =>
         val paramType = valdef.tpt.tpe
         val paramName = valdef.name
         paramType match {
-          case ntpe: NamedType if ntpe.name == "String" => '{ Input(${Expr(paramName)}, FieldType.String) }
-          case ntpe: NamedType if ntpe.name == "Int" => '{ Input(${Expr(paramName)}, FieldType.Int) }
+          case ntpe: NamedType if ntpe.name == "String" => '{ FormElement.TextInput(${Expr(paramName)}) }
+          case ntpe: NamedType if ntpe.name == "Int" => '{ FormElement.NumberInput(${Expr(paramName)}) }
+          case ntpe: NamedType if ntpe.name == "Boolean" => '{ FormElement.CheckboxInput(${Expr(paramName)}) }
           case t => unsupportedFunctionParamType(paramType, f.asTerm.pos)
         }
       }
@@ -82,6 +81,7 @@ class Macros(using Quotes) {
                 paramTpe match {
                   case ntpe: NamedType if ntpe.name == "String" => param.select("asInstanceOf").appliedToType(ntpe)
                   case ntpe: NamedType if ntpe.name == "Int" => '{ ${param.asExprOf[Any]}.asInstanceOf[String].toInt }.asTerm
+                  case ntpe: NamedType if ntpe.name == "Boolean" => param.select("asInstanceOf").appliedToType(ntpe)
                 }
               }.toList
             ).select("toString").appliedToNone
@@ -104,7 +104,7 @@ class Macros(using Quotes) {
 
   def scriptInfoImpl(f: Expr[Any]): Expr[Script] = {
     val name = functionNameImpl(f)
-    val params = functionInputsImpl(f)
+    val params = functionFormElementsImpl(f)
     val run = functionRunImpl(f)
     '{ Script($name, $params, $run) }
   }
