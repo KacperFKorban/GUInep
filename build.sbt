@@ -48,7 +48,8 @@ lazy val web = projectMatrix
   .settings(
     name := "GUInep-web",
     libraryDependencies ++= Seq(
-      "dev.zio" %% "zio-http" % "3.0.0-RC4"
+      "dev.zio" %% "zio-http" % "3.0.0-RC4",
+      "dev.zio" %% "zio-json" % "0.6.2"
     )
   )
   .dependsOn(guinep)
