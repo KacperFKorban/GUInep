@@ -33,7 +33,6 @@ class WebServer(val scripts: Map[String, Script]) extends HtmlGen {
           scriptName <- ZIO.fromEither(obj.get("script@name").get.asString.toRight("Missing script name"))
           script = scripts(scriptName)
           inputsValuesMap <- ZIO.fromEither(script.inputs.toList.parseJSONValue(obj))
-          _ <- ZIO.debug(inputsValuesMap)
           inputsValues = script.inputs.toList.sortByArgs(inputsValuesMap)
           result = script.run(inputsValues)
         } yield Response.text(result)).onError(e => ZIO.debug(e.toString))
