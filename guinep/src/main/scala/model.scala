@@ -1,5 +1,7 @@
 package guinep.internal
 
+import scala.quoted.*
+
 case class Script(name: String, inputs: Seq[FormElement], run: List[Any] => String)
 
 enum FormElement(val name: String):
@@ -32,3 +34,25 @@ enum FormElement(val name: String):
       s"""{ "name": '$name', "type": 'email' }"""
     case FormElement.PasswordInput(name) =>
       s"""{ "name": '$name', "type": 'password' }"""
+
+object FormElement:
+  given ToExpr[FormElement] with
+    def apply(formElement: FormElement)(using Quotes): Expr[FormElement] = formElement match
+      case FormElement.FieldSet(name, elements) =>
+        '{ FormElement.FieldSet(${Expr(name)}, ${Expr(elements)}) }
+      case FormElement.TextInput(name) =>
+        '{ FormElement.TextInput(${Expr(name)}) }
+      case FormElement.NumberInput(name) =>
+        '{ FormElement.NumberInput(${Expr(name)}) }
+      case FormElement.CheckboxInput(name) =>
+        '{ FormElement.CheckboxInput(${Expr(name)}) }
+      case FormElement.Dropdown(name, options) =>
+        '{ FormElement.Dropdown(${Expr(name)}, ${Expr(options)}) }
+      case FormElement.TextArea(name, rows, cols) =>
+        '{ FormElement.TextArea(${Expr(name)}, ${Expr(rows)}, ${Expr(cols)}) }
+      case FormElement.DateInput(name) =>
+        '{ FormElement.DateInput(${Expr(name)}) }
+      case FormElement.EmailInput(name) =>
+        '{ FormElement.EmailInput(${Expr(name)}) }
+      case FormElement.PasswordInput(name) =>
+        '{ FormElement.PasswordInput(${Expr(name)}) }

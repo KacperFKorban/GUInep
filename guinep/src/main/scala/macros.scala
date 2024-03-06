@@ -50,19 +50,45 @@ class Macros(using Quotes) {
       wrongParamsListError(f)
   }
 
+  private def functionFormElementFromTree(tree: Tree): FormElement = tree match {
+    case ValDef(name, tpt, _) =>
+      val paramType = tpt.tpe
+      val paramName = name
+      paramType match {
+        case ntpe: NamedType if ntpe.name == "String" => FormElement.TextInput(paramName)
+        case ntpe: NamedType if ntpe.name == "Int" => FormElement.NumberInput(paramName)
+        case ntpe: NamedType if ntpe.name == "Boolean" => FormElement.CheckboxInput(paramName)
+        case ntpe: NamedType =>
+          val classSymbol = ntpe.classSymbol.getOrElse(unsupportedFunctionParamType(paramType, tree.pos))
+          val fields = classSymbol.primaryConstructor.paramSymss.flatten.filter(_.isValDef).map(_.tree)
+          FormElement.FieldSet(paramName, fields.map(functionFormElementFromTree))
+        case _ => unsupportedFunctionParamType(paramType, tree.pos)
+      }
+  }
+
   private def functionFormElementsImpl(f: Expr[Any]): Expr[Seq[FormElement]] = {
     Expr.ofSeq(
-      functionParams(f).map { valdef =>
-        val paramType = valdef.tpt.tpe
-        val paramName = valdef.name
-        paramType match {
-          case ntpe: NamedType if ntpe.name == "String" => '{ FormElement.TextInput(${Expr(paramName)}) }
-          case ntpe: NamedType if ntpe.name == "Int" => '{ FormElement.NumberInput(${Expr(paramName)}) }
-          case ntpe: NamedType if ntpe.name == "Boolean" => '{ FormElement.CheckboxInput(${Expr(paramName)}) }
-          case t => unsupportedFunctionParamType(paramType, f.asTerm.pos)
-        }
-      }
+      functionParams(f).map(functionFormElementFromTree).map(Expr(_))
     )
+  }
+
+  private def constructArg(paramTpe: TypeRepr, param: Term): Term = {
+    paramTpe match {
+      case ntpe: NamedType if ntpe.name == "String" => param.select("asInstanceOf").appliedToType(ntpe)
+      case ntpe: NamedType if ntpe.name == "Int" => param.select("asInstanceOf").appliedToType(ntpe)
+      case ntpe: NamedType if ntpe.name == "Boolean" => param.select("asInstanceOf").appliedToType(ntpe)
+      case ntpe: NamedType =>
+        val classSymbol = ntpe.classSymbol.getOrElse(unsupportedFunctionParamType(paramTpe, param.pos))
+        val fields = classSymbol.primaryConstructor.paramSymss.flatten.filter(_.isValDef).map(_.tree)
+        val paramValue = '{ ${param.asExpr}.asInstanceOf[Map[String, Any]] }.asTerm
+        val args = fields.collect { case field: ValDef =>
+          val fieldName = field.asInstanceOf[ValDef].name
+          val fieldValue = paramValue.select("apply").appliedTo(Literal(StringConstant(fieldName)))
+          constructArg(field.tpt.tpe, fieldValue)
+        }
+        New(Inferred(ntpe)).select(classSymbol.primaryConstructor).appliedToArgs(args)
+      case _ => unsupportedFunctionParamType(paramTpe, param.pos)
+    }
   }
 
   private def functionRunImpl(f: Expr[Any]): Expr[List[Any] => String] = {
@@ -78,11 +104,7 @@ class Macros(using Quotes) {
               functionParams(f).zipWithIndex.map { case (valdef, i) =>
                 val paramTpe = valdef.tpt.tpe
                 val param = params.select("apply").appliedTo(Literal(IntConstant(i)))
-                paramTpe match {
-                  case ntpe: NamedType if ntpe.name == "String" => param.select("asInstanceOf").appliedToType(ntpe)
-                  case ntpe: NamedType if ntpe.name == "Int" => '{ ${param.asExprOf[Any]}.asInstanceOf[String].toInt }.asTerm
-                  case ntpe: NamedType if ntpe.name == "Boolean" => param.select("asInstanceOf").appliedToType(ntpe)
-                }
+                constructArg(paramTpe, param)
               }.toList
             ).select("toString").appliedToNone
           }

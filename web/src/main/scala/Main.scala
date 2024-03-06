@@ -30,5 +30,5 @@ def run: Unit =
     add,
     concat,
     giveALongText,
-    // addObj
+    addObj
   )
