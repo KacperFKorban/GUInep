@@ -1,7 +1,8 @@
-package guinep.internal
+package guinep
 
 import guinep.*
-import guinep.internal.serialization.*
+import guinep.model.*
+import guinep.serialization.*
 import zio.*
 import zio.http.*
 import zio.http.template.*

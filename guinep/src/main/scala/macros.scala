@@ -1,5 +1,6 @@
-package guinep.internal
+package guinep
 
+import guinep.model.*
 import scala.quoted.*
 
 private[guinep] object macros {

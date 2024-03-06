@@ -15,8 +15,8 @@ val commonSettings = Seq(
   ),
   scalaVersion := scala3,
   scalacOptions ++= Seq(
-    "-Xcheck-macros",
-    "-Ycheck:inlining",
+    // "-Xcheck-macros",
+    // "-Ycheck:inlining",
     "-explain",
     "-deprecation",
     "-unchecked",
@@ -29,6 +29,7 @@ val commonSettings = Seq(
 
 lazy val root = project
   .in(file("."))
+  .settings(commonSettings)
   .settings(
     name := "GUInep-root",
     publish / skip := true
@@ -37,6 +38,7 @@ lazy val root = project
 
 lazy val guinep = projectMatrix
   .in(file("guinep"))
+  .settings(commonSettings)
   .settings(
     name := "GUInep"
   )
@@ -44,6 +46,7 @@ lazy val guinep = projectMatrix
 
 lazy val web = projectMatrix
   .in(file("web"))
+  .settings(commonSettings)
   .settings(
     name := "GUInep-web",
     libraryDependencies ++= Seq(

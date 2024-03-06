@@ -1,6 +1,7 @@
-package guinep.internal
+package guinep
 
 import guinep.*
+import guinep.model.*
 import zio.*
 import zio.json.*
 import zio.json.ast.*
