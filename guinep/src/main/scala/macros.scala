@@ -4,12 +4,12 @@ import guinep.model.*
 import scala.quoted.*
 
 private[guinep] object macros {
-  inline def scriptInfos(inline fs: Any): Seq[Script] =
-    ${ Macros.scriptInfosImpl('fs) }
+  inline def funInfos(inline fs: Any): Seq[Fun] =
+    ${ Macros.funInfosImpl('fs) }
 
   object Macros {
-    def scriptInfosImpl(fs: Expr[Any])(using Quotes): Expr[Seq[Script]] =
-      Macros().scriptInfosImpl(fs)
+    def funInfosImpl(fs: Expr[Any])(using Quotes): Expr[Seq[Fun]] =
+      Macros().funInfosImpl(fs)
   }
 
   class Macros(using Quotes) {
@@ -116,21 +116,21 @@ private[guinep] object macros {
       }
     }
 
-    def scriptInfosImpl(fs: Expr[Any]): Expr[Seq[Script]] = {
+    def funInfosImpl(fs: Expr[Any]): Expr[Seq[Fun]] = {
       val functions = fs match {
         case Varargs(args) => args
         case _ => wrongParamsListError(fs)
       }
       if (functions.isEmpty)
         report.errorAndAbort("No functions provided", fs.asTerm.pos)
-      Expr.ofSeq(functions.map(scriptInfoImpl))
+      Expr.ofSeq(functions.map(funInfoImpl))
     }
 
-    def scriptInfoImpl(f: Expr[Any]): Expr[Script] = {
+    def funInfoImpl(f: Expr[Any]): Expr[Fun] = {
       val name = functionNameImpl(f)
       val params = functionFormElementsImpl(f)
       val run = functionRunImpl(f)
-      '{ Script($name, $params, $run) }
+      '{ Fun($name, $params, $run) }
     }
   }
 }

@@ -13,32 +13,29 @@ import scala.util.chaining.*
 
 private[guinep] object webgen {
 
-  def genWeb(scripts: Map[String, Script]): Unit = {
-    val ws = WebServer(scripts)
+  def genWeb(funs: Map[String, Fun]): Unit = {
+    val ws = WebServer(funs)
     val runtime = Runtime.default
     Unsafe.unsafe { implicit unsafe =>
       runtime.unsafe.run(ws.run)
     }
   }
 
-  class WebServer(val scripts: Map[String, Script]) extends HtmlGen {
+  class WebServer(val funs: Map[String, Fun]) extends HtmlGen {
     val app: HttpApp[Any] = Routes(
       Method.GET / PathCodec.empty ->
-        handler(Response.redirect(URL.root / "scripts", isPermanent = true)),
-      Method.GET / "scripts" ->
         handler(Response.html(generateHtml)),
-      Method.GET / "scripts" / string("name") ->
+      Method.GET / string("name") ->
         handler(Response.html(generateHtml)),
-      Method.POST / "run" ->
-        handler { (req: Request) =>
+      Method.POST / string("name") ->
+        handler { (name: String, req: Request) =>
           (for {
             str <- req.body.asString
             obj <- ZIO.fromEither(str.fromJson[Obj])
-            scriptName <- ZIO.fromEither(obj.get("script@name").get.asString.toRight("Missing script name"))
-            script = scripts(scriptName)
-            inputsValuesMap <- ZIO.fromEither(script.inputs.toList.parseJSONValue(obj))
-            inputsValues = script.inputs.toList.sortByArgs(inputsValuesMap)
-            result = script.run(inputsValues)
+            fun = funs(name)
+            inputsValuesMap <- ZIO.fromEither(fun.inputs.toList.parseJSONValue(obj))
+            inputsValues = fun.inputs.toList.sortByArgs(inputsValuesMap)
+            result = fun.run(inputsValues)
           } yield Response.text(result)).onError(e => ZIO.debug(e.toString))
         }
     ).sandbox.toHttpApp

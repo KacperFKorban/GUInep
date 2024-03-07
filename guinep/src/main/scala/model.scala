@@ -3,7 +3,7 @@ package guinep
 import scala.quoted.*
 
 private[guinep] object model {
-  case class Script(name: String, inputs: Seq[FormElement], run: List[Any] => String)
+  case class Fun(name: String, inputs: Seq[FormElement], run: List[Any] => String)
 
   enum FormElement(val name: String):
     case FieldSet(override val name: String, elements: List[FormElement]) extends FormElement(name)
