@@ -8,7 +8,7 @@ import zio.http.template.*
 import zio.http.codec.*
 
 private[guinep] trait HtmlGen {
-  val scripts: Map[String, Script]
+  val funs: Map[String, Fun]
   def generateHtml =
     html(
       head(
@@ -36,11 +36,11 @@ private[guinep] trait HtmlGen {
         div(
           classAttr := List("sidebar"), {
             for
-              (scriptName, _) <- scripts.toSeq
+              (name, _) <- funs.toSeq
             yield {
               a(
-                href := s"/scripts/$scriptName",
-                scriptName
+                href := s"/$name",
+                name
               )
             }
           }
@@ -50,7 +50,7 @@ private[guinep] trait HtmlGen {
           div(
             classAttr := List("form-container"),
             form(
-              id := "scriptForm",
+              id := "guinepForm",
               methodAttr := "post",
               actionAttr := "/run"
             ),
@@ -64,16 +64,17 @@ private[guinep] trait HtmlGen {
   def jsToChangeFormBasedOnPath: String =
     s"""
     function initFormBasedOnPath() {
-      const scriptName = window.location.pathname.replace("/scripts/", "");
-      changeForm(scriptName);
+      const funName = window.location.pathname.replace("/", "");
+      changeForm(funName);
     }
 
-    function changeForm(scriptName) {
-      const form = document.getElementById('scriptForm');
+    function changeForm(funName) {
+      const form = document.getElementById('guinepForm');
       form.innerHTML = ''; // Clear the form
+      form.funName = funName;
 
-      const scripts = ${scriptsToJsonArray};
-      const selectedScript = scripts.find(script => script[0] === scriptName);
+      const funs = ${funsToJsonArray};
+      const selectedFun = funs.find(fun => fun[0] === funName);
 
       function addFormElement(form, formElem) {
         const br = document.createElement('br');
@@ -101,21 +102,13 @@ private[guinep] trait HtmlGen {
         }
       }
 
-      if (selectedScript) {
+      if (selectedFun) {
         // add name title to the top of the form
         const nameTitle = document.createElement('h1');
-        nameTitle.innerText = scriptName;
+        nameTitle.innerText = funName;
         form.appendChild(nameTitle);
-        // add the script name as a hidden input
-        const nameInput = document.createElement('input');
-        nameInput.type = 'hidden';
-        nameInput.name = 'script@name';
-        nameInput.value = scriptName;
-        form.appendChild(nameInput);
-        const br = document.createElement('br');
-        form.appendChild(br);
-        // add the script inputs as text inputs
-        selectedScript[1].forEach(formElem => {
+        // add the function inputs as text inputs
+        selectedFun[1].forEach(formElem => {
           addFormElement(form, formElem);
         });
         const submitButton = document.createElement('input');
@@ -126,11 +119,12 @@ private[guinep] trait HtmlGen {
     }
 
     document.addEventListener("DOMContentLoaded", function() {
-      document.getElementById("scriptForm").addEventListener("submit", function(e) {
+      document.getElementById("guinepForm").addEventListener("submit", function(e) {
         e.preventDefault(); // Prevent the default form submission and redirect
 
         const form = this;
         const jsonData = {};
+        const funName = form.funName;
 
         const processElement = (element, parentObj) => {
           if (element.tagName === 'FIELDSET') {
@@ -161,7 +155,7 @@ private[guinep] trait HtmlGen {
           }
         });
 
-        fetch("/run", {
+        fetch(`/` + funName, {
           method: "POST",
           headers: {
             'Content-Type': 'application/json'
@@ -177,11 +171,11 @@ private[guinep] trait HtmlGen {
     });
     """
 
-  def scriptsToJsonArray: String =
-    scripts
+  def funsToJsonArray: String =
+    funs
       .toSeq
-      .map { case (name, script) =>
-        s"""["$name", [${script.inputs.map(_.toJSONRepr).mkString(",")}]]"""
+      .map { case (name, fun) =>
+        s"""["$name", [${fun.inputs.map(_.toJSONRepr).mkString(",")}]]"""
       }
       .mkString("[", ",", "]")
 }
