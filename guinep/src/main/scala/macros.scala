@@ -71,9 +71,9 @@ private[guinep] object macros {
 
     private def isCaseObjectTpe(tpe: TypeRepr): Boolean =
       val typeSymbol = tpe.typeSymbol
-      val isObject = typeSymbol.flags.is(Flags.Module)
-      val isEnumCase = typeSymbol.flags.is(Flags.Enum) && typeSymbol.flags.is(Flags.Case)
-      isObject || isEnumCase
+      val isModule = typeSymbol.flags.is(Flags.Module)
+      val isEnumCaseNonClassDef = typeSymbol.flags.is(Flags.Enum) && typeSymbol.flags.is(Flags.Case) && !typeSymbol.isClassDef
+      isModule || isEnumCaseNonClassDef
 
     private def functionFormElementFromTree(paramName: String, paramType: TypeRepr): FormElement = paramType match {
       case ntpe: NamedType if ntpe.name == "String" => FormElement.TextInput(paramName)
@@ -174,6 +174,7 @@ private[guinep] object macros {
       val name = functionNameImpl(f)
       val params = functionFormElementsImpl(f)
       val run = functionRunImpl(f)
+      println(run.show)
       '{ Fun($name, $params, $run) }
     }
   }

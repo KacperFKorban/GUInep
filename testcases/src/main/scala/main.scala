@@ -33,10 +33,6 @@ def greetInLanguage(name: String, language: Language): String =
     case Language.English => s"Hello, $name!"
     case Language.Polish => s"Cześć, $name!"
 
-// enum MaybeString:
-//   case JustString(value: String)
-//   case NoString
-
 sealed trait MaybeString
 case class JustString(value: String) extends MaybeString
 case object NoString extends MaybeString
@@ -45,6 +41,15 @@ def nameWithPossiblePrefix(name: String, maybePrefix: MaybeString): String =
   maybePrefix match
     case JustString(value) => s"$value $name"
     case NoString => name
+
+enum MaybeString1:
+  case JustString(value: String)
+  case NoString
+
+def nameWithPossiblePrefix1(name: String, maybePrefix: MaybeString1): String =
+  maybePrefix match
+    case MaybeString1.JustString(value) => s"$value $name"
+    case MaybeString1.NoString => name
 
 @main
 def run: Unit =
@@ -57,5 +62,6 @@ def run: Unit =
     addObj,
     // greetMaybeName,
     greetInLanguage,
-    nameWithPossiblePrefix
+    nameWithPossiblePrefix,
+    nameWithPossiblePrefix1
   )
