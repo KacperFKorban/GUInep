@@ -56,3 +56,13 @@ lazy val web = projectMatrix
   )
   .dependsOn(guinep)
   .jvmPlatform(scalaVersions = List(scala3))
+
+lazy val testcases = projectMatrix
+  .in(file("testcases"))
+  .settings(commonSettings)
+  .settings(
+    name := "GUInep-testcases",
+    publish / skip := true
+  )
+  .dependsOn(web)
+  .jvmPlatform(scalaVersions = List(scala3))
