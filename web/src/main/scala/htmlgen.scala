@@ -21,11 +21,11 @@ private[guinep] trait HtmlGen {
           .sidebar a:hover { background-color: #0056b3; }
           .main-content { margin-left: 232px; padding: 40px; display: flex; justify-content: center; padding-top: 20px; }
           .form-container { width: 300px; }
-          .form-input { margin-bottom: 10px; }
           label { display: inline-block; margin-right: 10px; vertical-align: middle; }
           input:not([type=submit]) { display: inline-block; padding: 8px; margin-bottom: 10px; box-sizing: border-box; }
           input[type=submit] { background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
           input[type=submit]:hover { background-color: #45a049; }
+          select { display: inline-block; margin-bottom: 10px; padding: 8px; box-sizing: border-box; }
           .result { margin-top: 20px; font-weight: bold; }
           """
         ),
@@ -76,15 +76,49 @@ private[guinep] trait HtmlGen {
       const funs = ${funsToJsonArray};
       const selectedFun = funs.find(fun => fun[0] === funName);
 
+      function setSubFormOnSelect(subForm, formElement, selectedOption) {
+        const selectedOptionForm = formElement.options.find(option => option.name === selectedOption);
+        subForm.innerHTML = '';
+        if (selectedOptionForm.value.elements.length > 0) {
+          subForm.style.visibility = 'visible';
+          selectedOptionForm.value.elements.forEach(subFormElem => addFormElement(subForm, subFormElem));
+        } else {
+          subForm.style.visibility = 'hidden';
+        }
+      }
+
       function addFormElement(form, formElem) {
         const br = document.createElement('br');
-        if (formElem.type == 'fieldset') {
+        if (formElem.type === 'fieldset') {
           const fieldset = document.createElement('fieldset');
           fieldset.name = formElem.name;
           const legend = document.createElement('legend');
           legend.innerText = formElem.name;
           fieldset.appendChild(legend);
           formElem.elements.forEach(subElem => addFormElement(fieldset, subElem));
+          form.appendChild(fieldset);
+          form.appendChild(br.cloneNode());
+        } else if (formElem.type === 'dropdown') {
+          const fieldset = document.createElement('fieldset');
+          fieldset.name = formElem.name;
+          const legend = document.createElement('legend');
+          legend.innerText = formElem.name;
+          fieldset.appendChild(legend);
+          const nameSelect = document.createElement('select');
+          nameSelect.name = 'name';
+          formElem.options.forEach(option => {
+            const optionElem = document.createElement('option');
+            optionElem.value = option.name;
+            optionElem.innerText = option.name;
+            nameSelect.appendChild(optionElem);
+          });
+          fieldset.appendChild(nameSelect);
+          fieldset.appendChild(br.cloneNode());
+          const valueFieldSet = document.createElement('fieldset');
+          valueFieldSet.name = 'value';
+          fieldset.appendChild(valueFieldSet);
+          nameSelect.onchange = (selection) => setSubFormOnSelect(valueFieldSet, formElem, selection.target.value);
+          setSubFormOnSelect(valueFieldSet, formElem, formElem.options[0].name);
           form.appendChild(fieldset);
           form.appendChild(br.cloneNode());
         } else {
@@ -146,6 +180,10 @@ private[guinep] trait HtmlGen {
             } else {
               parentObj[name] = value;
             }
+          } else if (element.tagName === 'SELECT') {
+            const name = element.name;
+            const value = element.value;
+            parentObj[name] = value;
           }
         };
 

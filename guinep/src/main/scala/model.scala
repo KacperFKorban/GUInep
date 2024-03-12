@@ -10,7 +10,7 @@ private[guinep] object model {
     case TextInput(override val name: String) extends FormElement(name)
     case NumberInput(override val name: String) extends FormElement(name)
     case CheckboxInput(override val name: String) extends FormElement(name)
-    case Dropdown(override val name: String, options: List[(String, String)]) extends FormElement(name)
+    case Dropdown(override val name: String, options: List[(String, FormElement)]) extends FormElement(name)
     case TextArea(override val name: String, rows: Option[Int] = None, cols: Option[Int] = None) extends FormElement(name)
     case DateInput(override val name: String) extends FormElement(name)
     case EmailInput(override val name: String) extends FormElement(name)
@@ -26,7 +26,7 @@ private[guinep] object model {
       case FormElement.CheckboxInput(name) =>
         s"""{ "name": '$name', "type": 'checkbox' }"""
       case FormElement.Dropdown(name, options) =>
-        s"""{ "name": '$name', "type": 'dropdown', "options": [${options.map { case (k, v) => s"""{"key": "$k", "value": "$v"}""" }.mkString(",")}] }"""
+        s"""{ "name": '$name', "type": 'dropdown', "options": [${options.map { case (k, v) => s"""{"name": "$k", "value": ${v.toJSONRepr}}""" }.mkString(",")}] }"""
       case FormElement.TextArea(name, rows, cols) =>
         s"""{ "name": '$name', "type": 'textarea', "rows": ${rows.getOrElse("")}, "cols": ${cols.getOrElse("")} }"""
       case FormElement.DateInput(name) =>
