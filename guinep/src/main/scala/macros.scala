@@ -75,6 +75,11 @@ private[guinep] object macros {
       val isEnumCaseNonClassDef = typeSymbol.flags.is(Flags.Enum) && typeSymbol.flags.is(Flags.Case) && !typeSymbol.isClassDef
       isModule || isEnumCaseNonClassDef
 
+    private def tpeArguments(tpe: TypeRepr): List[TypeRepr] = tpe match {
+      case AppliedType(tpe, args) => args
+      case _ => Nil
+    }
+
     private def functionFormElementFromTree(paramName: String, paramType: TypeRepr): FormElement = paramType match {
       case ntpe: NamedType if ntpe.name == "String" => FormElement.TextInput(paramName)
       case ntpe: NamedType if ntpe.name == "Int" => FormElement.NumberInput(paramName)
@@ -85,7 +90,10 @@ private[guinep] object macros {
         FormElement.FieldSet(paramName, fields.map(v => functionFormElementFromTree(v.name, v.tpt.tpe)))
       case ntpe if isSumTpe(ntpe) =>
         val classSymbol = ntpe.typeSymbol
-        val childrenFormElements = classSymbol.children.map(_.typeRef).map(t => functionFormElementFromTree("value", t))
+        val typeParamSyms = classSymbol.primaryConstructor.paramSymss.flatten.filter(_.isType)
+        val tpeArgs = tpeArguments(ntpe)
+        val childrenAppliedTpes = classSymbol.children.map(_.typeRef)
+        val childrenFormElements = childrenAppliedTpes.map(t => functionFormElementFromTree("value", t))
         val options = classSymbol.children.map(_.name).zip(childrenFormElements)
         FormElement.Dropdown(paramName, options)
       case _ =>
@@ -132,7 +140,6 @@ private[guinep] object macros {
             )
           }
         case _ =>
-          println(paramTpe.show)
           unsupportedFunctionParamType(paramTpe, Some(param.pos))
       }
     }
@@ -174,7 +181,6 @@ private[guinep] object macros {
       val name = functionNameImpl(f)
       val params = functionFormElementsImpl(f)
       val run = functionRunImpl(f)
-      println(run.show)
       '{ Fun($name, $params, $run) }
     }
   }
