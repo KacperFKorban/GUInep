@@ -25,8 +25,10 @@ private[guinep] object macros {
     def wrongParamsListError(f: Expr[Any]): Nothing =
       report.errorAndAbort(s"Wrong params list, expected a function reference, got: ${f.show}", f.asTerm.pos)
 
-    private def unsupportedFunctionParamType(t: TypeRepr, pos: Position): Nothing =
-      report.errorAndAbort(s"Unsupported function param type: ${t.show}", pos)
+    private def unsupportedFunctionParamType(t: TypeRepr, pos: Option[Position] = None): Nothing = pos match {
+      case Some(p) => report.errorAndAbort(s"Unsupported function param type: ${t.show}", p)
+      case None => report.errorAndAbort(s"Unsupported function param type: ${t.show}")
+    }
 
     extension (t: Term)
       private def select(s: Term): Term = Select(t, s.symbol)
@@ -52,35 +54,66 @@ private[guinep] object macros {
         wrongParamsListError(f)
     }
 
-    private def functionFormElementFromTree(tree: Tree): FormElement = tree match {
-      case ValDef(name, tpt, _) =>
-        val paramType = tpt.tpe
-        val paramName = name
-        paramType match {
-          case ntpe: NamedType if ntpe.name == "String" => FormElement.TextInput(paramName)
-          case ntpe: NamedType if ntpe.name == "Int" => FormElement.NumberInput(paramName)
-          case ntpe: NamedType if ntpe.name == "Boolean" => FormElement.CheckboxInput(paramName)
-          case ntpe: NamedType =>
-            val classSymbol = ntpe.classSymbol.getOrElse(unsupportedFunctionParamType(paramType, tree.pos))
-            val fields = classSymbol.primaryConstructor.paramSymss.flatten.filter(_.isValDef).map(_.tree)
-            FormElement.FieldSet(paramName, fields.map(functionFormElementFromTree))
-          case _ => unsupportedFunctionParamType(paramType, tree.pos)
-        }
+    private def isProductTpe(tpe: TypeRepr): Boolean =
+      val typeSymbol = tpe.typeSymbol
+      val typeIsSingleton = tpe.isSingleton
+      val typeIsCaseClass = typeSymbol.flags.is(Flags.Case)
+      val typeIsAnyVal = tpe.baseClasses.contains(defn.AnyValClass)
+      typeIsSingleton || typeIsCaseClass || typeIsAnyVal
+
+    private def isSumTpe(tpe: TypeRepr): Boolean =
+      val typeSymbol = tpe.typeSymbol
+      val typeIsSingleton = tpe.isSingleton
+      val typeIsEnum = typeSymbol.flags.is(Flags.Enum)
+      val typeIsSealedTraitOrAbstractClass = typeSymbol.flags.is(Flags.Sealed) && (typeSymbol.flags.is(Flags.Trait) || typeSymbol.flags.is(Flags.Abstract))
+      val typeIsNonCaseClassWithChildren = !typeSymbol.flags.is(Flags.Case) && typeSymbol.children.nonEmpty
+      !typeIsSingleton && (typeIsEnum || typeIsSealedTraitOrAbstractClass || typeIsNonCaseClassWithChildren)
+
+    private def isCaseObjectTpe(tpe: TypeRepr): Boolean =
+      val typeSymbol = tpe.typeSymbol
+      val isModule = typeSymbol.flags.is(Flags.Module)
+      val isEnumCaseNonClassDef = typeSymbol.flags.is(Flags.Enum) && typeSymbol.flags.is(Flags.Case) && !typeSymbol.isClassDef
+      isModule || isEnumCaseNonClassDef
+
+    private def tpeArguments(tpe: TypeRepr): List[TypeRepr] = tpe match {
+      case AppliedType(tpe, args) => args
+      case _ => Nil
     }
 
-    private def functionFormElementsImpl(f: Expr[Any]): Expr[Seq[FormElement]] = {
-      Expr.ofSeq(
-        functionParams(f).map(functionFormElementFromTree).map(Expr(_))
-      )
+    private def functionFormElementFromTree(paramName: String, paramType: TypeRepr): FormElement = paramType match {
+      case ntpe: NamedType if ntpe.name == "String" => FormElement.TextInput(paramName)
+      case ntpe: NamedType if ntpe.name == "Int" => FormElement.NumberInput(paramName)
+      case ntpe: NamedType if ntpe.name == "Boolean" => FormElement.CheckboxInput(paramName)
+      case ntpe if isProductTpe(ntpe) =>
+        val classSymbol = ntpe.typeSymbol
+        val fields = classSymbol.primaryConstructor.paramSymss.flatten.filter(_.isValDef).map(_.tree).collect { case v: ValDef => v }
+        FormElement.FieldSet(paramName, fields.map(v => functionFormElementFromTree(v.name, v.tpt.tpe)))
+      case ntpe if isSumTpe(ntpe) =>
+        val classSymbol = ntpe.typeSymbol
+        val typeParamSyms = classSymbol.primaryConstructor.paramSymss.flatten.filter(_.isType)
+        val tpeArgs = tpeArguments(ntpe)
+        val childrenAppliedTpes = classSymbol.children.map(_.typeRef)
+        val childrenFormElements = childrenAppliedTpes.map(t => functionFormElementFromTree("value", t))
+        val options = classSymbol.children.map(_.name).zip(childrenFormElements)
+        FormElement.Dropdown(paramName, options)
+      case _ =>
+        unsupportedFunctionParamType(paramType)
     }
+
+    private def functionFormElementsImpl(f: Expr[Any]): Expr[Seq[FormElement]] =
+      Expr.ofSeq(
+        functionParams(f).map { case ValDef(name, tpt, _) => functionFormElementFromTree(name, tpt.tpe) } .map(Expr(_))
+      )
 
     private def constructArg(paramTpe: TypeRepr, param: Term): Term = {
       paramTpe match {
         case ntpe: NamedType if ntpe.name == "String" => param.select("asInstanceOf").appliedToType(ntpe)
         case ntpe: NamedType if ntpe.name == "Int" => param.select("asInstanceOf").appliedToType(ntpe)
         case ntpe: NamedType if ntpe.name == "Boolean" => param.select("asInstanceOf").appliedToType(ntpe)
-        case ntpe: NamedType =>
-          val classSymbol = ntpe.classSymbol.getOrElse(unsupportedFunctionParamType(paramTpe, param.pos))
+        case ntpe if isCaseObjectTpe(ntpe) =>
+          Ident(ntpe.typeSymbol.termRef)
+        case ntpe if isProductTpe(ntpe) =>
+          val classSymbol = ntpe.classSymbol.getOrElse(unsupportedFunctionParamType(paramTpe, Some(param.pos)))
           val fields = classSymbol.primaryConstructor.paramSymss.flatten.filter(_.isValDef).map(_.tree)
           val paramValue = '{ ${param.asExpr}.asInstanceOf[Map[String, Any]] }.asTerm
           val args = fields.collect { case field: ValDef =>
@@ -89,7 +122,25 @@ private[guinep] object macros {
             constructArg(field.tpt.tpe, fieldValue)
           }
           New(Inferred(ntpe)).select(classSymbol.primaryConstructor).appliedToArgs(args)
-        case _ => unsupportedFunctionParamType(paramTpe, param.pos)
+        case ntpe if isSumTpe(ntpe) =>
+          val classSymbol = ntpe.classSymbol.getOrElse(unsupportedFunctionParamType(paramTpe, Some(param.pos)))
+          val className = classSymbol.name
+          val children = classSymbol.children
+          val paramMap = '{ ${param.asExpr}.asInstanceOf[Map[String, Any]] }.asTerm
+          val paramName = paramMap.select("apply").appliedTo(Literal(StringConstant("name")))
+          val paramValue = paramMap.select("apply").appliedTo(Literal(StringConstant("value")))
+          children.foldRight[Term]{
+            '{ throw new RuntimeException(s"Class ${${paramName.asExpr}} is not a child of ${${Expr(className)}}") }.asTerm
+          } { (child, acc) =>
+            val childName = Literal(StringConstant(child.name))
+            If(
+              paramName.select("equals").appliedTo(childName),
+              constructArg(child.typeRef, paramValue),
+              acc
+            )
+          }
+        case _ =>
+          unsupportedFunctionParamType(paramTpe, Some(param.pos))
       }
     }
 

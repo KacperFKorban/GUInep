@@ -40,8 +40,15 @@ private[guinep] object serialization:
       case FormElement.CheckboxInput(_) => value.asBoolean.toRight(s"Invalid boolean: $value")
       case FormElement.Dropdown(_, options) =>
         for {
-          v <- value.asString.toRight(s"Invalid string: $value")
-          res <- options.find(_._1 == v).map(_._2).toRight(s"Invalid option: $value")
-        } yield res
+          v <- value.asObject.toRight(s"Invalid object: $value")
+          ddName <- v.get("name").flatMap(_.asString).toRight(s"Invalid name: $value")
+          ddValue = v.get("value").getOrElse(Obj())
+          ddValueObj <- ddValue.asObject.toRight(s"Invalid object: $value")
+          foundOption <- options.find(_._1 == ddName).toRight(s"Invalid option: $value")
+          res <- foundOption._2.parseJSONValue(ddValueObj)
+        } yield Map(
+          "name" -> ddName,
+          "value" -> res
+        )
       case FormElement.TextArea(_, _, _) => Right(value)
       case _ => Left(s"Unsupported form element: $formElement")
