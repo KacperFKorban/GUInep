@@ -39,6 +39,12 @@ private[guinep] object macros {
       private def prettyName: String =
         s.name.stripSuffix("$")
 
+    extension (tpe: TypeRepr)
+      private def stripAnnots: TypeRepr = tpe match {
+        case AnnotatedType(tpe, _) => tpe.stripAnnots
+        case _ => tpe
+      }
+
     private def functionNameImpl(f: Expr[Any]): Expr[String] = {
       val name = f.asTerm match {
         case Inlined(_, _, Lambda(_, body)) =>
@@ -100,13 +106,13 @@ private[guinep] object macros {
           fields.map { valdef =>
             functionFormElementFromTree(
               valdef.name,
-              valdef.tpt.tpe.substituteTypes(typeDefParams, ntpe.typeArgs)
+              valdef.tpt.tpe.substituteTypes(typeDefParams, ntpe.typeArgs).stripAnnots
             )
           }
         )
       case ntpe if isSumTpe(ntpe) =>
         val classSymbol = ntpe.typeSymbol
-        val childrenAppliedTpes = classSymbol.children.map(child => appliedChild(child, classSymbol, ntpe.typeArgs))
+        val childrenAppliedTpes = classSymbol.children.map(child => appliedChild(child, classSymbol, ntpe.typeArgs)).map(_.stripAnnots)
         val childrenFormElements = childrenAppliedTpes.map(t => functionFormElementFromTree("value", t))
         val options = classSymbol.children.map(_.prettyName).zip(childrenFormElements)
         FormElement.Dropdown(paramName, options)
@@ -170,7 +176,7 @@ private[guinep] object macros {
           val classSymbol = ntpe.typeSymbol
           val className = classSymbol.name
           val children = classSymbol.children
-          val childrenAppliedTpes = children.map(child => appliedChild(child, classSymbol, ntpe.typeArgs))
+          val childrenAppliedTpes = children.map(child => appliedChild(child, classSymbol, ntpe.typeArgs)).map(_.stripAnnots)
           val paramMap = '{ ${param.asExpr}.asInstanceOf[Map[String, Any]] }.asTerm
           val paramName = paramMap.select("apply").appliedTo(Literal(StringConstant("name")))
           val paramValue = paramMap.select("apply").appliedTo(Literal(StringConstant("value")))

@@ -62,9 +62,14 @@ case class IntValue(value: Int) extends WeirdGADT[Int]
 case class SomeValue[+A](value: A) extends WeirdGADT[A]
 case class SomeOtherValue[+A, +B](value: A, value2: B) extends WeirdGADT[A]
 
+// This fails on unknown type params
 def printsWeirdGADT(g: WeirdGADT[String]): String = g match
   case SomeValue(value) => s"SomeValue($value)"
   case SomeOtherValue(value, value2) => s"SomeOtherValue($value, $value2)"
+
+// This loops forever
+def concatAll(elems: List[String]): String =
+  elems.mkString
 
 @main
 def run: Unit =
@@ -82,4 +87,5 @@ def run: Unit =
     roll20,
     roll6(),
     // printsWeirdGADT
+    // concatAll
   )
