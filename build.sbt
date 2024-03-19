@@ -34,7 +34,7 @@ lazy val root = project
     name := "GUInep-root",
     publish / skip := true
   )
-  .aggregate((guinep.projectRefs ++ web.projectRefs): _*)
+  .aggregate((guinep.projectRefs ++ web.projectRefs ++ testcases.projectRefs): _*)
 
 lazy val guinep = projectMatrix
   .in(file("guinep"))
