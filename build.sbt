@@ -40,7 +40,10 @@ lazy val guinep = projectMatrix
   .in(file("guinep"))
   .settings(commonSettings)
   .settings(
-    name := "GUInep"
+    name := "GUInep",
+    Compile / doc / scalacOptions ++= Seq(
+      "-siteroot", "docs"
+    )
   )
   .jvmPlatform(scalaVersions = List(scala3))
 
