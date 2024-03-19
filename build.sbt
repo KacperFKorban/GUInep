@@ -1,18 +1,31 @@
 val scala3 = "3.3.3"
 
-val commonSettings = Seq(
-  organization := "io.github.kacperfkorban",
-  description := "Automatic UI forms for Scala 3 functions",
-  homepage := Some(url("https://github.com/KacperFKorban/GUInep")),
-  licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
-  developers := List(
+import xerial.sbt.Sonatype.sonatypeCentralHost
+
+ThisBuild / publishTo := sonatypePublishToBundle.value
+ThisBuild / sonatypeCredentialHost := sonatypeCentralHost
+ThisBuild / version := "0.0.2"
+ThisBuild / versionScheme := Some("early-semver")
+ThisBuild / organization := "io.github.kacperfkorban"
+ThisBuild / description := "Automatic UI forms for Scala 3 functions"
+ThisBuild / scmInfo := Some(
+    ScmInfo(
+      url("https://github.com/KacperFKorban/GUInep"),
+      "scm:git@github.com:KacperFKorban/GUInep.git"
+    )
+  )
+ThisBuild / homepage := Some(url("https://github.com/KacperFKorban/GUInep"))
+ThisBuild / licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0"))
+ThisBuild / developers := List(
     Developer(
       "KacperFKorban",
       "Kacper Korban",
       "kacper.f.korban@gmail.com",
       url("https://twitter.com/KacperKorban")
     )
-  ),
+  )
+  
+val commonSettings = Seq(
   scalaVersion := scala3,
   scalacOptions ++= Seq(
     // "-Xcheck-macros",
