@@ -40,10 +40,7 @@ lazy val guinep = projectMatrix
   .in(file("guinep"))
   .settings(commonSettings)
   .settings(
-    name := "GUInep",
-    Compile / doc / scalacOptions ++= Seq(
-      "-siteroot", "docs"
-    )
+    name := "GUInep"
   )
   .jvmPlatform(scalaVersions = List(scala3))
 
@@ -52,6 +49,9 @@ lazy val web = projectMatrix
   .settings(commonSettings)
   .settings(
     name := "GUInep-web",
+    Compile / doc / scalacOptions ++= Seq(
+      "-siteroot", "docs"
+    ),
     libraryDependencies ++= Seq(
       "dev.zio" %% "zio-http" % "3.0.0-RC4",
       "dev.zio" %% "zio-json" % "0.6.2"
