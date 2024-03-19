@@ -54,6 +54,9 @@ def nameWithPossiblePrefix1(name: String, maybePrefix: MaybeString1): String =
 def roll20: Int =
   scala.util.Random.nextInt(20) + 1
 
+def roll6(): Int =
+  scala.util.Random.nextInt(6) + 1
+
 @main
 def run: Unit =
   guinep.web(
@@ -67,5 +70,6 @@ def run: Unit =
     greetInLanguage,
     nameWithPossiblePrefix,
     nameWithPossiblePrefix1,
-    roll20
+    roll20,
+    roll6()
   )

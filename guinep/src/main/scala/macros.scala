@@ -43,6 +43,8 @@ private[guinep] object macros {
           getMostInnerApply(body).getOrElse(wrongParamsListError(f))
         case Ident(name) =>
           name
+        case Apply(Ident(name), Nil) =>
+          name
         case _ =>
           wrongParamsListError(f)
       }
@@ -53,6 +55,8 @@ private[guinep] object macros {
       case Lambda(params, _) =>
         params.map (param => param)
       case Ident(_) =>
+        Nil
+      case Apply(Ident(_), Nil) =>
         Nil
       case _ =>
         wrongParamsListError(f)
@@ -176,6 +180,14 @@ private[guinep] object macros {
           MethodType(List("inputs"))(_ => List(TypeRepr.of[List[Any]]),  _ => TypeRepr.of[String]),
           { case (sym, List(params: Term)) =>
             i.select("toString").appliedToNone
+          }
+        ).asExprOf[List[Any] => String]
+      case a@Apply(Ident(_), Nil) =>
+        Lambda(
+          Symbol.spliceOwner,
+          MethodType(List("inputs"))(_ => List(TypeRepr.of[List[Any]]),  _ => TypeRepr.of[String]),
+          { case (sym, List(params: Term)) =>
+            a.select("toString").appliedToNone
           }
         ).asExprOf[List[Any] => String]
       case _ =>
