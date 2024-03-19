@@ -41,6 +41,10 @@ private[guinep] object macros {
           getMostInnerApply(body).getOrElse(wrongParamsListError(f))
         case Lambda(_, body) =>
           getMostInnerApply(body).getOrElse(wrongParamsListError(f))
+        case Ident(name) =>
+          name
+        case Apply(Ident(name), Nil) =>
+          name
         case _ =>
           wrongParamsListError(f)
       }
@@ -48,8 +52,12 @@ private[guinep] object macros {
     }
 
     private def functionParams(f: Expr[Any]): Seq[ValDef] = f.asTerm match {
-      case Lambda(params, body) =>
+      case Lambda(params, _) =>
         params.map (param => param)
+      case Ident(_) =>
+        Nil
+      case Apply(Ident(_), Nil) =>
+        Nil
       case _ =>
         wrongParamsListError(f)
     }
@@ -144,27 +152,46 @@ private[guinep] object macros {
       }
     }
 
-    private def functionRunImpl(f: Expr[Any]): Expr[List[Any] => String] = {
-      val fTerm = f.asTerm
-      f.asTerm match {
-        case l@Lambda(params, body) =>
-          /* (params: List[Any]) => l.apply(params(0).asInstanceOf[String], params(1).asInstanceOf[Int], ...) */
-          Lambda(
-            Symbol.spliceOwner,
-            MethodType(List("inputs"))(_ => List(TypeRepr.of[List[Any]]),  _ => TypeRepr.of[String]),
-            { case (sym, List(params: Term)) =>
-              l.select("apply").appliedToArgs(
-                functionParams(f).zipWithIndex.map { case (valdef, i) =>
-                  val paramTpe = valdef.tpt.tpe
-                  val param = params.select("apply").appliedTo(Literal(IntConstant(i)))
-                  constructArg(paramTpe, param)
-                }.toList
-              ).select("toString").appliedToNone
-            }
-          ).asExprOf[List[Any] => String]
-        case _ =>
-          wrongParamsListError(f)
-      }
+    @scala.annotation.nowarn("msg=match may not be exhaustive")
+    private def functionRunImpl(f: Expr[Any]): Expr[List[Any] => String] = f.asTerm match {
+      case l@Lambda(params, _) =>
+        /* (params: List[Any]) => l.apply(constructArg(params(0)), constructArg(params(1)), ...) */
+        Lambda(
+          Symbol.spliceOwner,
+          MethodType(List("inputs"))(_ => List(TypeRepr.of[List[Any]]),  _ => TypeRepr.of[String]),
+          { case (sym, List(params: Term)) =>
+            val args = functionParams(f).zipWithIndex.map { case (valdef, i) =>
+              val paramTpe = valdef.tpt.tpe
+              val param = params.select("apply").appliedTo(Literal(IntConstant(i)))
+              constructArg(paramTpe, param)
+            }.toList
+            val aply = l.select("apply")
+            val res =
+              if args.isEmpty then
+                aply.appliedToNone
+              else
+                aply.appliedToArgs(args)
+            res.select("toString").appliedToNone
+          }
+        ).asExprOf[List[Any] => String]
+      case i@Ident(_) =>
+        Lambda(
+          Symbol.spliceOwner,
+          MethodType(List("inputs"))(_ => List(TypeRepr.of[List[Any]]),  _ => TypeRepr.of[String]),
+          { case (sym, List(params: Term)) =>
+            i.select("toString").appliedToNone
+          }
+        ).asExprOf[List[Any] => String]
+      case a@Apply(Ident(_), Nil) =>
+        Lambda(
+          Symbol.spliceOwner,
+          MethodType(List("inputs"))(_ => List(TypeRepr.of[List[Any]]),  _ => TypeRepr.of[String]),
+          { case (sym, List(params: Term)) =>
+            a.select("toString").appliedToNone
+          }
+        ).asExprOf[List[Any] => String]
+      case _ =>
+        wrongParamsListError(f)
     }
 
     def funInfosImpl(fs: Expr[Any]): Expr[Seq[Fun]] = {
