@@ -1,5 +1,16 @@
 package guinep
 
+/**
+  * Starts a web server with the endpoints for running the given functions and
+  * an automatically derived frontend for calling them.
+  *
+  * @param functions the functions to be exposed
+  * @example {{{
+  *  def add(a: Int, b: Int) = a + b
+  *  def greet(name: String) = s"Hello, $name!"
+  *  @main def run = guinep.web(add, greet)
+  * }}}
+  */
 inline def web(inline functions: Any*): Unit =
   val functionsInfos = macros.funInfos(functions)
   val functionsInfosMap = functionsInfos.groupBy(_.name)
