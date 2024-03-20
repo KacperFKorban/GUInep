@@ -57,6 +57,20 @@ def roll20: Int =
 def roll6(): Int =
   scala.util.Random.nextInt(6) + 1
 
+sealed trait WeirdGADT[+A]
+case class IntValue(value: Int) extends WeirdGADT[Int]
+case class SomeValue[+A](value: A) extends WeirdGADT[A]
+case class SomeOtherValue[+A, +B](value: A, value2: B) extends WeirdGADT[A]
+
+// This fails on unknown type params
+def printsWeirdGADT(g: WeirdGADT[String]): String = g match
+  case SomeValue(value) => s"SomeValue($value)"
+  case SomeOtherValue(value, value2) => s"SomeOtherValue($value, $value2)"
+
+// This loops forever
+def concatAll(elems: List[String]): String =
+  elems.mkString
+
 @main
 def run: Unit =
   guinep.web(
@@ -66,10 +80,12 @@ def run: Unit =
     concat,
     giveALongText,
     addObj,
-    // greetMaybeName,
+    greetMaybeName,
     greetInLanguage,
     nameWithPossiblePrefix,
     nameWithPossiblePrefix1,
     roll20,
-    roll6()
+    roll6(),
+    // printsWeirdGADT
+    // concatAll
   )
