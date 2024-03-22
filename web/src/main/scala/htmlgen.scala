@@ -20,7 +20,7 @@ private[guinep] trait HtmlGen {
           .sidebar a { display: block; padding: 10px; margin-bottom: 10px; background-color: #007bff; color: white; text-decoration: none; text-align: center; border-radius: 5px; }
           .sidebar a:hover { background-color: #0056b3; }
           .main-content { margin-left: 232px; padding: 40px; display: flex; justify-content: center; padding-top: 20px; }
-          .form-container { width: 300px; }
+          .form-container { width: 600px; }
           label { display: inline-block; margin-right: 10px; vertical-align: middle; }
           input:not([type=submit]) { display: inline-block; padding: 8px; margin-bottom: 10px; box-sizing: border-box; }
           input[type=submit] { background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }

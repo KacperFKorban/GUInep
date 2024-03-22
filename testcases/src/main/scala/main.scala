@@ -70,6 +70,22 @@ def printsWeirdGADT(g: WeirdGADT[String]): String = g match
 def concatAll(elems: List[String]): String =
   elems.mkString
 
+enum IntTree:
+  case Leaf
+  case Node(left: IntTree, value: Int, right: IntTree)
+
+def isInTree(elem: Int, tree: IntTree): Boolean = tree match
+  case IntTree.Leaf => false
+  case IntTree.Node(left, value, right) =>
+    value == elem || isInTree(elem, left) || isInTree(elem, right)
+
+// Can't be handled right now
+extension (elem: Int)
+  def isInTreeExt(tree: IntTree): Boolean = tree match
+  case IntTree.Leaf => false
+  case IntTree.Node(left, value, right) =>
+    value == elem || elem.isInTreeExt(left) || elem.isInTreeExt(right)
+
 @main
 def run: Unit =
   guinep.web(
@@ -86,5 +102,7 @@ def run: Unit =
     roll20,
     roll6(),
     concatAll,
+    isInTree,
+    // isInTreeExt
     // printsWeirdGADT
   )
