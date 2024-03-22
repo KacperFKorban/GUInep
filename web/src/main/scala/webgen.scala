@@ -17,7 +17,10 @@ private[guinep] object webgen {
     val ws = WebServer(funs)
     val runtime = Runtime.default
     Unsafe.unsafe { implicit unsafe =>
-      runtime.unsafe.run(ws.run)
+      runtime.unsafe.run(
+        ws.run
+          .race(Console.readLine("Press ENTER to stop...").*>(Console.printLine("Stopping...")))
+      )
     }
   }
 
