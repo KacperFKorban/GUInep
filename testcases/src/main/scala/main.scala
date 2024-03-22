@@ -67,7 +67,6 @@ def printsWeirdGADT(g: WeirdGADT[String]): String = g match
   case SomeValue(value) => s"SomeValue($value)"
   case SomeOtherValue(value, value2) => s"SomeOtherValue($value, $value2)"
 
-// This loops forever
 def concatAll(elems: List[String]): String =
   elems.mkString
 
@@ -86,6 +85,6 @@ def run: Unit =
     nameWithPossiblePrefix1,
     roll20,
     roll6(),
+    concatAll,
     // printsWeirdGADT
-    // concatAll
   )

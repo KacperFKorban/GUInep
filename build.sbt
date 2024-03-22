@@ -20,7 +20,8 @@ val commonSettings = Seq(
     "-explain",
     "-deprecation",
     "-unchecked",
-    "-feature"
+    "-feature",
+    // "-Xprint:inlining"
   ),
   libraryDependencies ++= Seq(
     "org.scalameta" %%% "munit" % "1.0.0-M6" % Test
@@ -40,7 +41,10 @@ lazy val guinep = projectMatrix
   .in(file("guinep"))
   .settings(commonSettings)
   .settings(
-    name := "GUInep"
+    name := "GUInep",
+    libraryDependencies ++= Seq(
+      "com.softwaremill.quicklens" %%% "quicklens" % "1.9.7"
+    )
   )
   .jvmPlatform(scalaVersions = List(scala3))
 

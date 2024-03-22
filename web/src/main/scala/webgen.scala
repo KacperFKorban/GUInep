@@ -33,8 +33,9 @@ private[guinep] object webgen {
             str <- req.body.asString
             obj <- ZIO.fromEither(str.fromJson[Obj])
             fun = funs(name)
-            inputsValuesMap <- ZIO.fromEither(fun.inputs.toList.parseJSONValue(obj))
-            inputsValues = fun.inputs.toList.sortByArgs(inputsValuesMap)
+            given Map[String, FormElement] = fun.form.namedFormElements
+            inputsValuesMap <- ZIO.fromEither(fun.form.inputs.toList.parseJSONValue(obj))
+            inputsValues = fun.form.inputs.toList.sortByArgs(inputsValuesMap)
             result = fun.run(inputsValues)
           } yield Response.text(result)).onError(e => ZIO.debug(e.toString))
         }
