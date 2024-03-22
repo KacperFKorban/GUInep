@@ -110,6 +110,7 @@ private[guinep] object macros {
         case AppliedType(tpe, args) => s"${tpe.namedRef}[${args.map(_.namedRef).mkString(", ")}]"
         case AnnotatedType(tpe, _) => tpe.namedRef
         case _ => tpe.show
+
     private def functionFormElementFromTreeWithCaching(paramName: String, paramTpe: TypeRepr)(using FormConstrContext): FormElement =
       formConstrCtx.constructedTpes.get(paramTpe.namedRef) match
         case Some(_) =>
@@ -193,15 +194,21 @@ private[guinep] object macros {
     private case class ConstrContext(constrMap: mutable.Map[String, ConstrEntry])
     private def constrCtx(using ConstrContext) = summon[ConstrContext]
 
-    private def constructArgWithCaching(paramTpe: TypeRepr, param: Term)(using ConstrContext): Term = constrCtx.constrMap.get(paramTpe.namedRef) match
-      case Some(ConstrEntry(_, ref)) =>
-        ref.appliedTo(param)
-      case None =>
-        val ConstrEntry(_, ref) = constructFunction(paramTpe)
-        ref.appliedTo(param)
+    private def constructArgWithCaching(paramTpe: TypeRepr, param: Term)(using ConstrContext): Term =
+      constrCtx.constrMap.get(paramTpe.namedRef) match
+        case Some(ConstrEntry(_, ref)) =>
+          ref.appliedTo(param)
+        case None =>
+          val ConstrEntry(_, ref) = constructFunction(paramTpe)
+          ref.appliedTo(param)
 
     private def constructFunction(paramTpe: TypeRepr)(using ConstrContext): ConstrEntry =
-      val defdefSymbol = Symbol.newMethod(Symbol.spliceOwner, s"constrFunFor${paramTpe.typeSymbol.name}", MethodType(List("inputs"))(_ => List(TypeRepr.of[Any]),  _ => paramTpe))
+      val defdefSymbol =
+        Symbol.newMethod(
+          Symbol.spliceOwner,
+          s"constrFunFor${paramTpe.namedRef}",
+          MethodType(List("inputs"))(_ => List(TypeRepr.of[Any]),  _ => paramTpe)
+        )
       constrCtx.constrMap.update(paramTpe.namedRef, ConstrEntry(None, Ref(defdefSymbol)))
       val defdef = DefDef(defdefSymbol, {
         case List(List(param: Term)) =>

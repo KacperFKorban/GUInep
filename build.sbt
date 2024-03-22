@@ -20,8 +20,7 @@ val commonSettings = Seq(
     "-explain",
     "-deprecation",
     "-unchecked",
-    "-feature",
-    // "-Xprint:inlining"
+    "-feature"
   ),
   libraryDependencies ++= Seq(
     "org.scalameta" %%% "munit" % "1.0.0-M6" % Test
