@@ -86,6 +86,9 @@ extension (elem: Int)
   case IntTree.Node(left, value, right) =>
     value == elem || elem.isInTreeExt(left) || elem.isInTreeExt(right)
 
+def addManyParamLists(a: Int)(b: Int): Int =
+  a + b
+
 @main
 def run: Unit =
   guinep.web(
@@ -104,5 +107,6 @@ def run: Unit =
     concatAll,
     isInTree,
     // isInTreeExt
+    // addManyParamLists
     // printsWeirdGADT
   )
