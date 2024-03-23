@@ -20,7 +20,7 @@ private[guinep] trait HtmlGen {
           .sidebar a { display: block; padding: 10px; margin-bottom: 10px; background-color: #007bff; color: white; text-decoration: none; text-align: center; border-radius: 5px; }
           .sidebar a:hover { background-color: #0056b3; }
           .main-content { margin-left: 232px; padding: 40px; display: flex; justify-content: center; padding-top: 20px; }
-          .form-container { width: 300px; }
+          .form-container { width: 600px; }
           label { display: inline-block; margin-right: 10px; vertical-align: middle; }
           input:not([type=submit]) { display: inline-block; padding: 8px; margin-bottom: 10px; box-sizing: border-box; }
           input[type=submit] { background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
@@ -76,18 +76,18 @@ private[guinep] trait HtmlGen {
       const funs = ${funsToJsonArray};
       const selectedFun = funs.find(fun => fun[0] === funName);
 
-      function setSubFormOnSelect(subForm, formElement, selectedOption) {
+      function setSubFormOnSelect(subForm, formElement, selectedOption, namedLookup) {
         const selectedOptionForm = formElement.options.find(option => option.name === selectedOption);
         subForm.innerHTML = '';
         if (selectedOptionForm.value.elements.length > 0) {
           subForm.style.visibility = 'visible';
-          selectedOptionForm.value.elements.forEach(subFormElem => addFormElement(subForm, subFormElem));
+          selectedOptionForm.value.elements.forEach(subFormElem => addFormElement(subForm, subFormElem, namedLookup));
         } else {
           subForm.style.visibility = 'hidden';
         }
       }
 
-      function addFormElement(form, formElem) {
+      function addFormElement(form, formElem, namedLookup) {
         const br = document.createElement('br');
         if (formElem.type === 'fieldset') {
           const fieldset = document.createElement('fieldset');
@@ -95,7 +95,7 @@ private[guinep] trait HtmlGen {
           const legend = document.createElement('legend');
           legend.innerText = formElem.name;
           fieldset.appendChild(legend);
-          formElem.elements.forEach(subElem => addFormElement(fieldset, subElem));
+          formElem.elements.forEach(subElem => addFormElement(fieldset, subElem, namedLookup));
           form.appendChild(fieldset);
           form.appendChild(br.cloneNode());
         } else if (formElem.type === 'dropdown') {
@@ -117,10 +117,14 @@ private[guinep] trait HtmlGen {
           const valueFieldSet = document.createElement('fieldset');
           valueFieldSet.name = 'value';
           fieldset.appendChild(valueFieldSet);
-          nameSelect.onchange = (selection) => setSubFormOnSelect(valueFieldSet, formElem, selection.target.value);
-          setSubFormOnSelect(valueFieldSet, formElem, formElem.options[0].name);
+          nameSelect.onchange = (selection) => setSubFormOnSelect(valueFieldSet, formElem, selection.target.value, namedLookup);
+          setSubFormOnSelect(valueFieldSet, formElem, formElem.options[0].name, namedLookup);
           form.appendChild(fieldset);
           form.appendChild(br.cloneNode());
+        } else if (formElem.type == 'namedref') {
+          const formElemFromLookup = namedLookup[formElem.ref];
+          formElemFromLookup.name = formElem.name;
+          addFormElement(form, formElemFromLookup, namedLookup);
         } else {
           const label = document.createElement('label');
           label.innerText = formElem.name + ': ';
@@ -142,8 +146,9 @@ private[guinep] trait HtmlGen {
         nameTitle.innerText = funName;
         form.appendChild(nameTitle);
         // add the function inputs as text inputs
+        const namedLookup = selectedFun[2];
         selectedFun[1].forEach(formElem => {
-          addFormElement(form, formElem);
+          addFormElement(form, formElem, namedLookup);
         });
         const submitButton = document.createElement('input');
         submitButton.type = 'submit';
@@ -213,7 +218,10 @@ private[guinep] trait HtmlGen {
     funs
       .toSeq
       .map { case (name, fun) =>
-        s"""["$name", [${fun.inputs.map(_.toJSONRepr).mkString(",")}]]"""
+        s"""|["$name",
+            |${fun.form.formElementsJSONRepr},
+            |${fun.form.namedFormElementsJSONRepr}
+            |]""".stripMargin
       }
       .mkString("[", ",", "]")
 }

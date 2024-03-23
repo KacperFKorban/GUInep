@@ -40,7 +40,10 @@ lazy val guinep = projectMatrix
   .in(file("guinep"))
   .settings(commonSettings)
   .settings(
-    name := "GUInep"
+    name := "GUInep",
+    libraryDependencies ++= Seq(
+      "com.softwaremill.quicklens" %%% "quicklens" % "1.9.7"
+    )
   )
   .jvmPlatform(scalaVersions = List(scala3))
 

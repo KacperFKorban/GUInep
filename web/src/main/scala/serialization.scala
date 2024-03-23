@@ -7,6 +7,7 @@ import zio.json.*
 import zio.json.ast.*
 import zio.json.ast.Json.*
 import scala.util.chaining.*
+import com.softwaremill.quicklens.*
 
 private[guinep] object serialization:
   def sequenceEither[A, B](eithers: List[Either[A, B]]): Either[A, List[B]] =
@@ -15,7 +16,7 @@ private[guinep] object serialization:
     }
 
   extension (formElements: List[FormElement])
-    def parseJSONValue(value: Obj): Either[String, Map[String, Any]] =
+    def parseJSONValue(value: Obj)(using formElementLookup: Map[String, FormElement]): Either[String, Map[String, Any]] =
       formElements
         .map { element =>
           val v = value.get(element.name).toRight(s"Missing value for ${element.name}").flatMap(element.parseJSONValue)
@@ -29,7 +30,7 @@ private[guinep] object serialization:
       }
 
   extension (formElement: FormElement)
-    def parseJSONValue(value: Json): Either[String, Any] = formElement match
+    def parseJSONValue(value: Json)(using formElementLookup: Map[String, FormElement]): Either[String, Any] = formElement match
       case FormElement.FieldSet(name, elements) =>
         for {
           m <- value.asObject.toRight(s"Invalid object: $value")
@@ -51,4 +52,7 @@ private[guinep] object serialization:
           "value" -> res
         )
       case FormElement.TextArea(_, _, _) => Right(value)
+      case FormElement.NamedRef(name, ref) =>
+        val formElementFromLookup = formElementLookup(ref).modify(_.name).setTo(name)
+        formElementFromLookup.parseJSONValue(value)
       case _ => Left(s"Unsupported form element: $formElement")
