@@ -21,11 +21,13 @@ private[guinep] object macros {
       case Apply(fun, _) => getMostInnerApply(fun)
       case TypeApply(fun, _) => getMostInnerApply(fun)
       case Ident(name) => Some(name)
+      case This(name) => name
+      case Select(_, name) => Some(name)
       case _ => None
     }
 
     private def wrongParamsListError(f: Expr[Any]): Nothing =
-      report.errorAndAbort(s"Wrong params list, expected a function reference, got: ${f.show}", f.asTerm.pos)
+      report.errorAndAbort(s"Wrong params list, expected a function reference, got: ${f.show}, ${f.asTerm}", f.asTerm.pos)
 
     private def unsupportedFunctionParamType(t: TypeRepr, pos: Option[Position] = None): Nothing = pos match {
       case Some(p) => report.errorAndAbort(s"Unsupported function param type: ${t.show}", p)
@@ -55,16 +57,10 @@ private[guinep] object macros {
 
     private def functionNameImpl(f: Expr[Any]): Expr[String] = {
       val name = f.asTerm match {
-        case Inlined(_, _, Lambda(_, body)) =>
-          getMostInnerApply(body).getOrElse(wrongParamsListError(f))
         case Lambda(_, body) =>
           getMostInnerApply(body).getOrElse(wrongParamsListError(f))
-        case Ident(name) =>
-          name
-        case Apply(Ident(name), Nil) =>
-          name
-        case _ =>
-          wrongParamsListError(f)
+        case tree =>
+          getMostInnerApply(tree).getOrElse(wrongParamsListError(f))
       }
       Expr(name)
     }
@@ -73,6 +69,8 @@ private[guinep] object macros {
       case Lambda(params, _) =>
         params.map (param => param)
       case Ident(_) =>
+        Nil
+      case Select(_, _) =>
         Nil
       case Apply(Ident(_), Nil) =>
         Nil
@@ -291,12 +289,12 @@ private[guinep] object macros {
           constrCtx.constrMap.toList.flatMap(_._2.definition),
           resLambda
         ).asExprOf[List[Any] => String]
-      case i@Ident(_) =>
+      case t@Ident(_) =>
         Lambda(
           Symbol.spliceOwner,
           MethodType(List("inputs"))(_ => List(TypeRepr.of[List[Any]]),  _ => TypeRepr.of[String]),
           { case (sym, List(params: Term)) =>
-            i.select("toString").appliedToNone
+            t.select("toString").appliedToNone
           }
         ).asExprOf[List[Any] => String]
       case a@Apply(Ident(_), Nil) =>
@@ -311,10 +309,17 @@ private[guinep] object macros {
         wrongParamsListError(f)
     }
 
+    private def stripInlined(term: Term): Term = term match {
+      case Inlined(_, _, body) => stripInlined(body)
+      case _ => term
+    }
+
     def funInfosImpl(fs: Expr[Any]): Expr[Seq[Fun]] = {
-      val functions = fs match {
+      val functions = fs.match {
         case Varargs(args) => args
-        case _ => wrongParamsListError(fs)
+        case f => Seq(f)
+      }.map { expr =>
+        stripInlined(expr.asTerm).asExpr
       }
       if (functions.isEmpty)
         report.errorAndAbort("No functions provided", fs.asTerm.pos)
