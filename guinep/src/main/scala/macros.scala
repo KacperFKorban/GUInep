@@ -27,7 +27,7 @@ private[guinep] object macros {
     }
 
     private def wrongParamsListError(f: Expr[Any]): Nothing =
-      report.errorAndAbort(s"Wrong params list, expected a function reference, got: ${f.show}, ${f.asTerm}", f.asTerm.pos)
+      report.errorAndAbort(s"Wrong params list, expected a function reference, got: ${f.show}", f.asTerm.pos)
 
     private def unsupportedFunctionParamType(t: TypeRepr, pos: Option[Position] = None): Nothing = pos match {
       case Some(p) => report.errorAndAbort(s"Unsupported function param type: ${t.show}", p)
