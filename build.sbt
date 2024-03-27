@@ -4,7 +4,7 @@ import xerial.sbt.Sonatype.sonatypeCentralHost
 
 ThisBuild / publishTo := sonatypePublishToBundle.value
 ThisBuild / sonatypeCredentialHost := sonatypeCentralHost
-ThisBuild / version := "0.0.3"
+ThisBuild / version := "0.0.4"
 ThisBuild / versionScheme := Some("early-semver")
 ThisBuild / organization := "io.github.kacperfkorban"
 ThisBuild / description := "Automatic UI forms for Scala 3 functions"
