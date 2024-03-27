@@ -2,7 +2,7 @@ val scala3 = "3.3.3"
 
 val commonSettings = Seq(
   organization := "io.github.kacperfkorban",
-  description := "Automatic UI for from Scala 3 functions",
+  description := "Automatic UI forms for Scala 3 functions",
   homepage := Some(url("https://github.com/KacperFKorban/GUInep")),
   licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
   developers := List(
