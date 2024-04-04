@@ -8,7 +8,7 @@ import zio.http.template.*
 import zio.http.codec.*
 
 private[guinep] trait HtmlGen {
-  val funs: Map[String, Fun]
+  val funs: Seq[(String, Fun)]
   def generateHtml =
     html(
       head(

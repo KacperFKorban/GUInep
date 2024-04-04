@@ -13,7 +13,7 @@ import scala.util.chaining.*
 
 private[guinep] object webgen {
 
-  def genWeb(funs: Map[String, Fun]): Unit = {
+  def genWeb(funs: Seq[(String, Fun)]): Unit = {
     val ws = WebServer(funs)
     val runtime = Runtime.default
     Unsafe.unsafe { implicit unsafe =>
@@ -24,7 +24,8 @@ private[guinep] object webgen {
     }
   }
 
-  class WebServer(val funs: Map[String, Fun]) extends HtmlGen {
+  class WebServer(val funs: Seq[(String, Fun)]) extends HtmlGen {
+    val funsMap = funs.toMap
     val app: HttpApp[Any] = Routes(
       Method.GET / PathCodec.empty ->
         handler(Response.html(generateHtml)),
@@ -35,7 +36,7 @@ private[guinep] object webgen {
           (for {
             str <- req.body.asString
             obj <- ZIO.fromEither(str.fromJson[Obj])
-            fun = funs(name)
+            fun = funsMap(name)
             given Map[String, FormElement] = fun.form.namedFormElements
             inputsValuesMap <- ZIO.fromEither(fun.form.inputs.toList.parseJSONValue(obj))
             inputsValues = fun.form.inputs.toList.sortByArgs(inputsValuesMap)
