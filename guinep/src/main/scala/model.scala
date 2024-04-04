@@ -25,6 +25,7 @@ private[guinep] object model {
   enum FormElement(val name: String):
     case TextInput(override val name: String) extends FormElement(name)
     case NumberInput(override val name: String) extends FormElement(name)
+    case FloatingNumberInput(override val name: String) extends FormElement(name)
     case CheckboxInput(override val name: String) extends FormElement(name)
     case Dropdown(override val name: String, options: List[(String, FormElement)]) extends FormElement(name)
     case TextArea(override val name: String, rows: Option[Int] = None, cols: Option[Int] = None) extends FormElement(name)
@@ -37,6 +38,7 @@ private[guinep] object model {
     def constrOrd: Int = this match
       case TextInput(_) => 0
       case NumberInput(_) => 1
+      case FloatingNumberInput(_) => 1
       case CheckboxInput(_) => 2
       case Dropdown(_, _) => 3
       case TextArea(_, _, _) => 4
@@ -53,6 +55,8 @@ private[guinep] object model {
         s"""{ "name": '$name', "type": 'text' }"""
       case FormElement.NumberInput(name) =>
         s"""{ "name": '$name', "type": 'number' }"""
+      case FormElement.FloatingNumberInput(name) =>
+        s"""{ "name": '$name', "type": 'float' }"""
       case FormElement.CheckboxInput(name) =>
         s"""{ "name": '$name', "type": 'checkbox' }"""
       case FormElement.Dropdown(name, options) =>
@@ -78,6 +82,8 @@ private[guinep] object model {
           '{ FormElement.TextInput(${Expr(name)}) }
         case FormElement.NumberInput(name) =>
           '{ FormElement.NumberInput(${Expr(name)}) }
+        case FormElement.FloatingNumberInput(name) =>
+          '{ FormElement.FloatingNumberInput(${Expr(name)}) }
         case FormElement.CheckboxInput(name) =>
           '{ FormElement.CheckboxInput(${Expr(name)}) }
         case FormElement.Dropdown(name, options) =>

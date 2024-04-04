@@ -61,6 +61,18 @@ object TestsData {
   def concatAll(elems: List[String]): String =
     elems.mkString
 
+  def showDouble(d: Double): String =
+    d.toString
+
+  def multiplyShorts(a: Short, b: Short): Int =
+    a * b
+
+  def divideFloats(a: Float, b: Float): Float =
+    a / b
+
+  def subtractLongs(a: Long, b: Long): Long =
+    a - b
+
   enum IntTree:
     case Leaf
     case Node(left: IntTree, value: Int, right: IntTree)

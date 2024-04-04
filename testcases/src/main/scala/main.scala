@@ -65,6 +65,12 @@ def printsWeirdGADT(g: WeirdGADT[String]): String = g match
 def concatAll(elems: List[String]): String =
   elems.mkString
 
+def showDouble(d: Double): String =
+  d.toString
+
+def divideFloats(a: Float, b: Float): Float =
+  a / b
+
 enum IntTree:
   case Leaf
   case Node(left: IntTree, value: Int, right: IntTree)
@@ -99,6 +105,8 @@ def run: Unit =
     roll20,
     roll6(),
     concatAll,
+    showDouble,
+    divideFloats,
     isInTree,
     // isInTreeExt
     // addManyParamLists
