@@ -122,6 +122,7 @@ private[guinep] object macros {
 
     private def functionFormElementFromTree(paramName: String, paramType: TypeRepr)(using FormConstrContext): FormElement = paramType match {
       case ntpe: NamedType if ntpe =:= TypeRepr.of[String] => FormElement.TextInput(paramName)
+      case ntpe: NamedType if ntpe =:= TypeRepr.of[Char] => FormElement.CharInput(paramName)
       case ntpe: NamedType
       if ntpe =:= TypeRepr.of[Int] || ntpe =:= TypeRepr.of[Long] || ntpe =:= TypeRepr.of[Short] || ntpe =:= TypeRepr.of[Byte] =>
         FormElement.NumberInput(paramName)
@@ -222,6 +223,7 @@ private[guinep] object macros {
     private def constructArg(paramTpe: TypeRepr, param: Term)(using ConstrContext): Term = {
       paramTpe match {
         case ntpe: NamedType if ntpe =:= TypeRepr.of[String] => param.select("asInstanceOf").appliedToType(ntpe)
+        case ntpe: NamedType if ntpe =:= TypeRepr.of[Char] => param.select("asInstanceOf").appliedToType(ntpe)
         case ntpe: NamedType
         if ntpe =:= TypeRepr.of[Int] || ntpe =:= TypeRepr.of[Long] || ntpe =:= TypeRepr.of[Short] || ntpe =:= TypeRepr.of[Byte] =>
           param.select(s"asInstanceOf").appliedToType(TypeRepr.of[Long]).select(s"to${ntpe.name}")

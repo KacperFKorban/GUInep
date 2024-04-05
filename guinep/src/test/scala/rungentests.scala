@@ -187,6 +187,13 @@ class RunGenTests extends munit.FunSuite {
   )
 
   checkGeneratedRunResultEquals(
+    "codeOfChar",
+    codeOfChar,
+    List('a'),
+    "97"
+  )
+
+  checkGeneratedRunResultEquals(
     "isInTree",
     isInTree,
     List(1l, Map("name" -> "Node", "value" -> Map("left" -> Map("name" -> "Leaf", "value" -> Map.empty), "value" -> 1l, "right" -> Map("name" -> "Leaf", "value" -> Map.empty)))),

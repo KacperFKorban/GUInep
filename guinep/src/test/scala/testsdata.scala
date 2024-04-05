@@ -73,6 +73,9 @@ object TestsData {
   def subtractLongs(a: Long, b: Long): Long =
     a - b
 
+  def codeOfChar(c: Char): Int =
+    c.toInt
+
   enum IntTree:
     case Leaf
     case Node(left: IntTree, value: Int, right: IntTree)

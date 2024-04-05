@@ -138,6 +138,19 @@ private[guinep] trait HtmlGen {
           input.placeholder = formElem.name;
           form.appendChild(input);
           form.appendChild(br.cloneNode());
+        } else if (formElem.type == 'char') {
+          const label = document.createElement('label');
+          label.innerText = formElem.name + ': ';
+          label.for = formElem.name;
+          form.appendChild(label);
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.maxLength = '1';
+          input.name = formElem.name;
+          input.id = formElem.name;
+          input.placeholder = formElem.name;
+          form.appendChild(input);
+          form.appendChild(br.cloneNode());
         } else {
           const label = document.createElement('label');
           label.innerText = formElem.name + ': ';

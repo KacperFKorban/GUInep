@@ -71,6 +71,9 @@ def showDouble(d: Double): String =
 def divideFloats(a: Float, b: Float): Float =
   a / b
 
+def codeOfChar(c: Char): Int =
+  c.toInt
+
 enum IntTree:
   case Leaf
   case Node(left: IntTree, value: Int, right: IntTree)
@@ -107,6 +110,7 @@ def run: Unit =
     concatAll,
     showDouble,
     divideFloats,
+    codeOfChar,
     isInTree,
     // isInTreeExt
     // addManyParamLists

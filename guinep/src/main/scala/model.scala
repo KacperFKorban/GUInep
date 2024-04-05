@@ -24,6 +24,7 @@ private[guinep] object model {
 
   enum FormElement(val name: String):
     case TextInput(override val name: String) extends FormElement(name)
+    case CharInput(override val name: String) extends FormElement(name)
     case NumberInput(override val name: String) extends FormElement(name)
     case FloatingNumberInput(override val name: String) extends FormElement(name)
     case CheckboxInput(override val name: String) extends FormElement(name)
@@ -37,6 +38,7 @@ private[guinep] object model {
 
     def constrOrd: Int = this match
       case TextInput(_) => 0
+      case CharInput(_) => 0
       case NumberInput(_) => 1
       case FloatingNumberInput(_) => 1
       case CheckboxInput(_) => 2
@@ -53,6 +55,8 @@ private[guinep] object model {
         s"""{ "name": '$name', "type": 'fieldset', "elements": [${elements.map(_.toJSONRepr).mkString(",")}] }"""
       case FormElement.TextInput(name) =>
         s"""{ "name": '$name', "type": 'text' }"""
+      case FormElement.CharInput(name) =>
+        s"""{ "name": '$name', "type": 'char' }"""
       case FormElement.NumberInput(name) =>
         s"""{ "name": '$name', "type": 'number' }"""
       case FormElement.FloatingNumberInput(name) =>
@@ -80,6 +84,8 @@ private[guinep] object model {
           '{ FormElement.FieldSet(${Expr(name)}, ${Expr(elements)}) }
         case FormElement.TextInput(name) =>
           '{ FormElement.TextInput(${Expr(name)}) }
+        case FormElement.CharInput(name) =>
+          '{ FormElement.CharInput(${Expr(name)}) }
         case FormElement.NumberInput(name) =>
           '{ FormElement.NumberInput(${Expr(name)}) }
         case FormElement.FloatingNumberInput(name) =>
@@ -99,6 +105,7 @@ private[guinep] object model {
         case FormElement.NamedRef(name, ref) =>
           '{ FormElement.NamedRef(${Expr(name)}, ${Expr(ref)}) }
 
+    // This ordering is a hack to avoid placing recursive constructors as first options in a dropdown
     given Ordering[FormElement] = new Ordering[FormElement] {
       def compare(x: FormElement, y: FormElement): Int =
         if x.constrOrd < y.constrOrd then -1
