@@ -20,4 +20,4 @@ inline def web(inline functions: Any*): Unit =
           |Ignoring duplicates""".stripMargin
     )
   println("Starting GUInep web server at http://localhost:8090/")
-  webgen.genWeb(functionsInfosMap.view.mapValues(_.head).toMap)
+  webgen.genWeb(functionsInfos.distinct.map(fun => fun.name -> fun))

@@ -27,7 +27,7 @@ class RunGenTests extends munit.FunSuite {
   checkGeneratedRunResultEquals(
     "add",
     add,
-    List(1, 2),
+    List(1l, 2l),
     "3"
   )
 
@@ -55,7 +55,7 @@ class RunGenTests extends munit.FunSuite {
   checkGeneratedRunResultEquals(
     "addObj",
     addObj,
-    List(Map("a" -> 1, "b" -> 2)),
+    List(Map("a" -> 1l, "b" -> 2l)),
     "3"
   )
 
@@ -159,16 +159,51 @@ class RunGenTests extends munit.FunSuite {
   )
 
   checkGeneratedRunResultEquals(
+    "showDouble",
+    showDouble,
+    List(1.0d),
+    "1.0"
+  )
+
+  checkGeneratedRunResultEquals(
+    "multiplyShorts",
+    multiplyShorts,
+    List(1l, 2l),
+    "2"
+  )
+
+  checkGeneratedRunResultEquals(
+    "divideFloats",
+    divideFloats,
+    List(1.0d, 2.0d),
+    "0.5"
+  )
+
+  checkGeneratedRunResultEquals(
+    "subtractLongs",
+    subtractLongs,
+    List(2l, 1l),
+    "1"
+  )
+
+  checkGeneratedRunResultEquals(
+    "codeOfChar",
+    codeOfChar,
+    List('a'),
+    "97"
+  )
+
+  checkGeneratedRunResultEquals(
     "isInTree",
     isInTree,
-    List(1, Map("name" -> "Node", "value" -> Map("left" -> Map("name" -> "Leaf", "value" -> Map.empty), "value" -> 1, "right" -> Map("name" -> "Leaf", "value" -> Map.empty)))),
+    List(1l, Map("name" -> "Node", "value" -> Map("left" -> Map("name" -> "Leaf", "value" -> Map.empty), "value" -> 1l, "right" -> Map("name" -> "Leaf", "value" -> Map.empty)))),
     "true"
   )
 
   checkGeneratedRunResultEquals(
     "isInTree",
     isInTree,
-    List(1, Map("name" -> "Leaf", "value" -> Map.empty)),
+    List(1l, Map("name" -> "Leaf", "value" -> Map.empty)),
     "false"
   )
 

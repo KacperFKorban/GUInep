@@ -121,9 +121,13 @@ private[guinep] object macros {
           formElement
 
     private def functionFormElementFromTree(paramName: String, paramType: TypeRepr)(using FormConstrContext): FormElement = paramType match {
-      case ntpe: NamedType if ntpe.name == "String" => FormElement.TextInput(paramName)
-      case ntpe: NamedType if ntpe.name == "Int" => FormElement.NumberInput(paramName)
-      case ntpe: NamedType if ntpe.name == "Boolean" => FormElement.CheckboxInput(paramName)
+      case ntpe: NamedType if ntpe =:= TypeRepr.of[String] => FormElement.TextInput(paramName)
+      case ntpe: NamedType if ntpe =:= TypeRepr.of[Char] => FormElement.CharInput(paramName)
+      case ntpe: NamedType
+      if ntpe =:= TypeRepr.of[Int] || ntpe =:= TypeRepr.of[Long] || ntpe =:= TypeRepr.of[Short] || ntpe =:= TypeRepr.of[Byte] =>
+        FormElement.NumberInput(paramName)
+      case ntpe: NamedType if ntpe =:= TypeRepr.of[Boolean] => FormElement.CheckboxInput(paramName)
+      case ntpe: NamedType if ntpe =:= TypeRepr.of[Double] || ntpe =:= TypeRepr.of[Float] => FormElement.FloatingNumberInput(paramName)
       case ntpe if isProductTpe(ntpe) =>
         val classSymbol = ntpe.typeSymbol
         val typeDefParams = classSymbol.primaryConstructor.paramSymss.flatten.filter(_.isTypeParam)
@@ -218,9 +222,14 @@ private[guinep] object macros {
 
     private def constructArg(paramTpe: TypeRepr, param: Term)(using ConstrContext): Term = {
       paramTpe match {
-        case ntpe: NamedType if ntpe.name == "String" => param.select("asInstanceOf").appliedToType(ntpe)
-        case ntpe: NamedType if ntpe.name == "Int" => param.select("asInstanceOf").appliedToType(ntpe)
-        case ntpe: NamedType if ntpe.name == "Boolean" => param.select("asInstanceOf").appliedToType(ntpe)
+        case ntpe: NamedType if ntpe =:= TypeRepr.of[String] => param.select("asInstanceOf").appliedToType(ntpe)
+        case ntpe: NamedType if ntpe =:= TypeRepr.of[Char] => param.select("asInstanceOf").appliedToType(ntpe)
+        case ntpe: NamedType
+        if ntpe =:= TypeRepr.of[Int] || ntpe =:= TypeRepr.of[Long] || ntpe =:= TypeRepr.of[Short] || ntpe =:= TypeRepr.of[Byte] =>
+          param.select(s"asInstanceOf").appliedToType(TypeRepr.of[Long]).select(s"to${ntpe.name}")
+        case ntpe: NamedType if ntpe =:= TypeRepr.of[Boolean] => param.select("asInstanceOf").appliedToType(ntpe)
+        case ntpe: NamedType if ntpe =:= TypeRepr.of[Double] || ntpe =:= TypeRepr.of[Float] =>
+          param.select(s"asInstanceOf").appliedToType(TypeRepr.of[Double]).select(s"to${ntpe.name}")
         case ntpe if isCaseObjectTpe(ntpe) && ntpe.typeSymbol.flags.is(Flags.Module) =>
           Ref(ntpe.typeSymbol.companionModule)
         case ntpe if isCaseObjectTpe(ntpe) =>

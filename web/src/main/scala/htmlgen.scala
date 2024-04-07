@@ -8,7 +8,7 @@ import zio.http.template.*
 import zio.http.codec.*
 
 private[guinep] trait HtmlGen {
-  val funs: Map[String, Fun]
+  val funs: Seq[(String, Fun)]
   def generateHtml =
     html(
       head(
@@ -125,6 +125,32 @@ private[guinep] trait HtmlGen {
           const formElemFromLookup = namedLookup[formElem.ref];
           formElemFromLookup.name = formElem.name;
           addFormElement(form, formElemFromLookup, namedLookup);
+        } else if (formElem.type == 'float') {
+          const label = document.createElement('label');
+          label.innerText = formElem.name + ': ';
+          label.for = formElem.name;
+          form.appendChild(label);
+          const input = document.createElement('input');
+          input.type = 'number';
+          input.step = 'any';
+          input.name = formElem.name;
+          input.id = formElem.name;
+          input.placeholder = formElem.name;
+          form.appendChild(input);
+          form.appendChild(br.cloneNode());
+        } else if (formElem.type == 'char') {
+          const label = document.createElement('label');
+          label.innerText = formElem.name + ': ';
+          label.for = formElem.name;
+          form.appendChild(label);
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.maxLength = '1';
+          input.name = formElem.name;
+          input.id = formElem.name;
+          input.placeholder = formElem.name;
+          form.appendChild(input);
+          form.appendChild(br.cloneNode());
         } else {
           const label = document.createElement('label');
           label.innerText = formElem.name + ': ';

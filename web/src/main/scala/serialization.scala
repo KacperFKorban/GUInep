@@ -37,7 +37,9 @@ private[guinep] object serialization:
           res <- elements.parseJSONValue(m)
         } yield res
       case FormElement.TextInput(_) => value.asString.toRight(s"Invalid string: $value")
-      case FormElement.NumberInput(_) => value.asString.flatMap(_.toIntOption).toRight(s"Invalid number: $value")
+      case FormElement.CharInput(_) => value.asString.flatMap(_.headOption).toRight(s"Invalid char: $value")
+      case FormElement.NumberInput(_) => value.asString.flatMap(_.toLongOption).toRight(s"Invalid number: $value")
+      case FormElement.FloatingNumberInput(_) => value.asString.flatMap(_.toDoubleOption).toRight(s"Invalid float: $value")
       case FormElement.CheckboxInput(_) => value.asBoolean.toRight(s"Invalid boolean: $value")
       case FormElement.Dropdown(_, options) =>
         for {

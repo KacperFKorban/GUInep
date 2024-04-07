@@ -200,6 +200,70 @@ class FormGenTests extends munit.FunSuite {
   )
 
   checkGeneratedFormEquals(
+    "showDouble",
+    showDouble,
+    Form(
+      Seq(
+        FormElement.FloatingNumberInput("d")
+      ),
+      Map.empty
+    )
+  )
+
+  checkGeneratedFormEquals(
+    "multiplyShorts",
+    multiplyShorts,
+    Form(
+      Seq(
+        FormElement.NumberInput("a"),
+        FormElement.NamedRef("b", "scala.Short")
+      ),
+      Map(
+        "scala.Short" -> FormElement.NumberInput("value")
+      )
+    )
+  )
+
+  checkGeneratedFormEquals(
+    "divideFloats",
+    divideFloats,
+    Form(
+      Seq(
+        FormElement.FloatingNumberInput("a"),
+        FormElement.NamedRef("b", "scala.Float")
+      ),
+      Map(
+        "scala.Float" -> FormElement.FloatingNumberInput("value")
+      )
+    )
+  )
+
+  checkGeneratedFormEquals(
+    "subtractLongs",
+    subtractLongs,
+    Form(
+      Seq(
+        FormElement.NumberInput("a"),
+        FormElement.NamedRef("b", "scala.Long")
+      ),
+      Map(
+        "scala.Long" -> FormElement.NumberInput("value")
+      )
+    )
+  )
+
+  checkGeneratedFormEquals(
+    "codeOfChar",
+    codeOfChar,
+    Form(
+      Seq(
+        FormElement.CharInput("c")
+      ),
+      Map.empty
+    )
+  )
+
+  checkGeneratedFormEquals(
     "isInTree",
     isInTree,
     Form(
