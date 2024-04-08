@@ -57,4 +57,9 @@ private[guinep] object serialization:
       case FormElement.NamedRef(name, ref) =>
         val formElementFromLookup = formElementLookup(ref).modify(_.name).setTo(name)
         formElementFromLookup.parseJSONValue(value)
+      case FormElement.ListInput(_, element) =>
+        for {
+          jsonLst <- value.asArray.map(_.toList).toRight(s"Invalid array $value")
+          res <- sequenceEither(jsonLst.map(element.parseJSONValue))
+        } yield res
       case _ => Left(s"Unsupported form element: $formElement")

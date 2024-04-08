@@ -29,6 +29,7 @@ private[guinep] object model {
     case FloatingNumberInput(override val name: String) extends FormElement(name)
     case CheckboxInput(override val name: String) extends FormElement(name)
     case Dropdown(override val name: String, options: List[(String, FormElement)]) extends FormElement(name)
+    case ListInput(override val name: String, element: FormElement) extends FormElement(name)
     case TextArea(override val name: String, rows: Option[Int] = None, cols: Option[Int] = None) extends FormElement(name)
     case DateInput(override val name: String) extends FormElement(name)
     case EmailInput(override val name: String) extends FormElement(name)
@@ -43,6 +44,7 @@ private[guinep] object model {
       case FloatingNumberInput(_) => 1
       case CheckboxInput(_) => 2
       case Dropdown(_, _) => 3
+      case ListInput(_, _) => 3
       case TextArea(_, _, _) => 4
       case DateInput(_) => 5
       case EmailInput(_) => 6
@@ -66,6 +68,8 @@ private[guinep] object model {
       case FormElement.Dropdown(name, options) =>
         // TODO(kπ) this sortBy isn't 100% sure to be working (the only requirement is for the first constructor to not be recursive; this is a graph problem, sorta)
         s"""{ "name": '$name', "type": 'dropdown', "options": [${options.sortBy(_._2).map { case (k, v) => s"""{"name": "$k", "value": ${v.toJSONRepr}}""" }.mkString(",")}] }"""
+      case FormElement.ListInput(name, element) =>
+        s"""{ "name": '$name', "type": 'list', "element": ${element.toJSONRepr} }"""
       case FormElement.TextArea(name, rows, cols) =>
         s"""{ "name": '$name', "type": 'textarea', "rows": ${rows.getOrElse("")}, "cols": ${cols.getOrElse("")} }"""
       case FormElement.DateInput(name) =>
@@ -94,6 +98,8 @@ private[guinep] object model {
           '{ FormElement.CheckboxInput(${Expr(name)}) }
         case FormElement.Dropdown(name, options) =>
           '{ FormElement.Dropdown(${Expr(name)}, ${Expr(options)}) }
+        case FormElement.ListInput(name, element) =>
+          '{ FormElement.ListInput(${Expr(name)}, ${Expr(element)}) }
         case FormElement.TextArea(name, rows, cols) =>
           '{ FormElement.TextArea(${Expr(name)}, ${Expr(rows)}, ${Expr(cols)}) }
         case FormElement.DateInput(name) =>
