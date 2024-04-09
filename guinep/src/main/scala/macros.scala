@@ -139,8 +139,8 @@ private[guinep] object macros {
         FormElement.FloatingNumberInput(paramName, Types.FloatingType.Float)
       case ntpe: NamedType if ntpe =:= TypeRepr.of[Double] =>
         FormElement.FloatingNumberInput(paramName, Types.FloatingType.Double)
-      case AppliedType(ntpe: NamedType, List(tpeArg)) if listLikeSymbolsConverters.contains(ntpe.typeSymbol) =>
-        FormElement.ListInput(paramName, functionFormElementFromTreeWithCaching("elem", tpeArg), listLikeSymbolsConverters(ntpe.typeSymbol))
+      case AppliedType(ntpe: NamedType, List(tpeArg)) if listLikeSymbolsTypes.contains(ntpe.typeSymbol) =>
+        FormElement.ListInput(paramName, functionFormElementFromTreeWithCaching("elem", tpeArg), listLikeSymbolsTypes(ntpe.typeSymbol))
       case ntpe if isProductTpe(ntpe) =>
         val classSymbol = ntpe.typeSymbol
         val typeDefParams = classSymbol.primaryConstructor.paramSymss.flatten.filter(_.isTypeParam)
@@ -161,7 +161,6 @@ private[guinep] object macros {
         val options = classSymbol.children.map(_.prettyName).zip(childrenFormElements)
         FormElement.Dropdown(paramName, options)
       case _ =>
-        println("XD")
         unsupportedFunctionParamType(paramType)
     }
 
@@ -235,7 +234,7 @@ private[guinep] object macros {
       constrEntry
 
     // TODO(kπ) add all the missing symbols to it
-    private val listLikeSymbolsConverters: Map[Symbol, Types.ListType] = Map(
+    private val listLikeSymbolsTypes: Map[Symbol, Types.ListType] = Map(
       Symbol.classSymbol("scala.collection.immutable.List") -> Types.ListType.List,
       Symbol.classSymbol("scala.collection.immutable.Seq") -> Types.ListType.Seq,
       Symbol.classSymbol("scala.collection.immutable.Vector") -> Types.ListType.Vector
@@ -254,7 +253,7 @@ private[guinep] object macros {
           param.select("asInstanceOf").appliedToType(ntpe)
         case ntpe: NamedType if ntpe =:= TypeRepr.of[Double] || ntpe =:= TypeRepr.of[Float] =>
           param.select(s"asInstanceOf").appliedToType(ntpe)
-        case AppliedType(ntpe: NamedType, List(tpeArg)) if listLikeSymbolsConverters.contains(ntpe.typeSymbol) =>
+        case AppliedType(ntpe: NamedType, List(tpeArg)) if listLikeSymbolsTypes.contains(ntpe.typeSymbol) =>
           param.select("asInstanceOf").appliedToType(paramTpe)
         case ntpe if isCaseObjectTpe(ntpe) && ntpe.typeSymbol.flags.is(Flags.Module) =>
           Ref(ntpe.typeSymbol.companionModule)
