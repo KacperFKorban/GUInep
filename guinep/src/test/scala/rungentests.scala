@@ -27,7 +27,7 @@ class RunGenTests extends munit.FunSuite {
   checkGeneratedRunResultEquals(
     "add",
     add,
-    List(1l, 2l),
+    List(1, 2),
     "3"
   )
 
@@ -55,7 +55,7 @@ class RunGenTests extends munit.FunSuite {
   checkGeneratedRunResultEquals(
     "addObj",
     addObj,
-    List(Map("a" -> 1l, "b" -> 2l)),
+    List(Map("a" -> 1, "b" -> 2)),
     "3"
   )
 
@@ -140,21 +140,21 @@ class RunGenTests extends munit.FunSuite {
   checkGeneratedRunResultEquals(
     "concatAll",
     concatAll,
-    List(Map("name" -> "::", "value" -> Map("head" -> "hello", "next" -> Map("name" -> "::", "value" -> Map("head" -> "world", "next" -> Map("name" -> "Nil", "value" -> Map.empty)))))),
+    List(List("hello", "world")),
     "helloworld"
   )
 
   checkGeneratedRunResultEquals(
     "concatAll",
     concatAll,
-    List(Map("name" -> "Nil", "value" -> Map.empty)),
+    List(List()),
     ""
   )
 
   checkGeneratedRunResultEquals(
     "concatAll",
     concatAll,
-    List(Map("name" -> "::", "value" -> Map("head" -> "hello", "next" -> Map("name" -> "Nil", "value" -> Map.empty)))),
+    List(List("hello")),
     "hello"
   )
 
@@ -168,14 +168,14 @@ class RunGenTests extends munit.FunSuite {
   checkGeneratedRunResultEquals(
     "multiplyShorts",
     multiplyShorts,
-    List(1l, 2l),
+    List(1.toShort, 2.toShort),
     "2"
   )
 
   checkGeneratedRunResultEquals(
     "divideFloats",
     divideFloats,
-    List(1.0d, 2.0d),
+    List(1.0.toFloat, 2.0.toFloat),
     "0.5"
   )
 
@@ -196,14 +196,14 @@ class RunGenTests extends munit.FunSuite {
   checkGeneratedRunResultEquals(
     "isInTree",
     isInTree,
-    List(1l, Map("name" -> "Node", "value" -> Map("left" -> Map("name" -> "Leaf", "value" -> Map.empty), "value" -> 1l, "right" -> Map("name" -> "Leaf", "value" -> Map.empty)))),
+    List(1, Map("name" -> "Node", "value" -> Map("left" -> Map("name" -> "Leaf", "value" -> Map.empty), "value" -> 1, "right" -> Map("name" -> "Leaf", "value" -> Map.empty)))),
     "true"
   )
 
   checkGeneratedRunResultEquals(
     "isInTree",
     isInTree,
-    List(1l, Map("name" -> "Leaf", "value" -> Map.empty)),
+    List(1, Map("name" -> "Leaf", "value" -> Map.empty)),
     "false"
   )
 

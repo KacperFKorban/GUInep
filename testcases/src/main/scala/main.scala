@@ -93,6 +93,9 @@ extension (elem: Int)
 def addManyParamLists(a: Int)(b: Int): Int =
   a + b
 
+def listProduct(list: List[Int]): Int =
+  list.product
+
 @main
 def run: Unit =
   guinep.web(
@@ -112,6 +115,7 @@ def run: Unit =
     divideFloats,
     codeOfChar,
     isInTree,
+    listProduct,
     // isInTreeExt
     // addManyParamLists
     // printsWeirdGADT
