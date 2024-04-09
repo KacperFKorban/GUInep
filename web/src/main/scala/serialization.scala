@@ -38,8 +38,20 @@ private[guinep] object serialization:
         } yield res
       case FormElement.TextInput(_) => value.asString.toRight(s"Invalid string: $value")
       case FormElement.CharInput(_) => value.asString.flatMap(_.headOption).toRight(s"Invalid char: $value")
-      case FormElement.NumberInput(_) => value.asString.flatMap(_.toLongOption).toRight(s"Invalid number: $value")
-      case FormElement.FloatingNumberInput(_) => value.asString.flatMap(_.toDoubleOption).toRight(s"Invalid float: $value")
+      case FormElement.NumberInput(_, tpe) => tpe match
+        case guinep.model.Types.IntType.Int =>
+          value.asString.flatMap(_.toIntOption).toRight(s"Invalid int: $value")
+        case guinep.model.Types.IntType.Long =>
+          value.asString.flatMap(_.toLongOption).toRight(s"Invalid long: $value")
+        case guinep.model.Types.IntType.Byte =>
+          value.asString.flatMap(_.toByteOption).toRight(s"Invalid byte: $value")
+        case guinep.model.Types.IntType.Short =>
+          value.asString.flatMap(_.toShortOption).toRight(s"Invalid short: $value")
+      case FormElement.FloatingNumberInput(_, tpe) => tpe match
+        case guinep.model.Types.FloatingType.Double =>
+          value.asString.flatMap(_.toDoubleOption).toRight(s"Invalid double: $value")
+        case guinep.model.Types.FloatingType.Float =>
+          value.asString.flatMap(_.toFloatOption).toRight(s"Invalid float: $value")
       case FormElement.CheckboxInput(_) => value.asBoolean.toRight(s"Invalid boolean: $value")
       case FormElement.Dropdown(_, options) =>
         for {
@@ -57,4 +69,12 @@ private[guinep] object serialization:
       case FormElement.NamedRef(name, ref) =>
         val formElementFromLookup = formElementLookup(ref).modify(_.name).setTo(name)
         formElementFromLookup.parseJSONValue(value)
+      case FormElement.ListInput(_, element, tpe) =>
+        for {
+          jsonLst <- value.asArray.map(_.toList).toRight(s"Invalid array $value")
+          res <- sequenceEither(jsonLst.map(element.parseJSONValue))
+        } yield tpe match
+          case guinep.model.Types.ListType.List => res
+          case guinep.model.Types.ListType.Seq => res.toSeq
+          case guinep.model.Types.ListType.Vector => res.toVector
       case _ => Left(s"Unsupported form element: $formElement")

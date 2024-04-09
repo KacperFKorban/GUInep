@@ -25,11 +25,11 @@ class FormGenTests extends munit.FunSuite {
     add,
     Form(
       Seq(
-        FormElement.NumberInput("a"),
+        FormElement.NumberInput("a", Types.IntType.Int),
         FormElement.NamedRef("b", "scala.Int")
       ),
       Map(
-        "scala.Int" -> FormElement.NumberInput("value")
+        "scala.Int" -> FormElement.NumberInput("value", Types.IntType.Int)
       )
     )
   )
@@ -67,13 +67,13 @@ class FormGenTests extends munit.FunSuite {
         FormElement.FieldSet(
           "add",
           List(
-            FormElement.NumberInput("a"),
+            FormElement.NumberInput("a", Types.IntType.Int),
             FormElement.NamedRef("b", "scala.Int")
           )
         )
       ),
       Map(
-        "scala.Int" -> FormElement.NumberInput("value")
+        "scala.Int" -> FormElement.NumberInput("value", Types.IntType.Int)
       )
     )
   )
@@ -173,29 +173,9 @@ class FormGenTests extends munit.FunSuite {
     concatAll,
     Form(
       Seq(
-        FormElement.Dropdown(
-          "elems",
-          List(
-            "::" -> FormElement.FieldSet(
-              "value",
-              List(FormElement.TextInput("head"), FormElement.NamedRef("next", "scala.collection.immutable.List[scala.Predef$.String]"))
-            ),
-            "Nil" -> FormElement.FieldSet("value", Nil)
-          )
-        )
+        FormElement.ListInput("elems", FormElement.TextInput("elem"), Types.ListType.List)
       ),
-      Map(
-        "scala.collection.immutable.List[scala.Predef$.String]" -> FormElement.Dropdown(
-          "value",
-          List(
-            "::" -> FormElement.FieldSet(
-              "value",
-              List(FormElement.TextInput("head"), FormElement.NamedRef("next", "scala.collection.immutable.List[scala.Predef$.String]"))
-            ),
-            "Nil" -> FormElement.FieldSet("value", Nil)
-          )
-        )
-      )
+      Map()
     )
   )
 
@@ -204,7 +184,7 @@ class FormGenTests extends munit.FunSuite {
     showDouble,
     Form(
       Seq(
-        FormElement.FloatingNumberInput("d")
+        FormElement.FloatingNumberInput("d", Types.FloatingType.Double)
       ),
       Map.empty
     )
@@ -215,11 +195,11 @@ class FormGenTests extends munit.FunSuite {
     multiplyShorts,
     Form(
       Seq(
-        FormElement.NumberInput("a"),
+        FormElement.NumberInput("a", Types.IntType.Short),
         FormElement.NamedRef("b", "scala.Short")
       ),
       Map(
-        "scala.Short" -> FormElement.NumberInput("value")
+        "scala.Short" -> FormElement.NumberInput("value", Types.IntType.Short)
       )
     )
   )
@@ -229,11 +209,11 @@ class FormGenTests extends munit.FunSuite {
     divideFloats,
     Form(
       Seq(
-        FormElement.FloatingNumberInput("a"),
+        FormElement.FloatingNumberInput("a", Types.FloatingType.Float),
         FormElement.NamedRef("b", "scala.Float")
       ),
       Map(
-        "scala.Float" -> FormElement.FloatingNumberInput("value")
+        "scala.Float" -> FormElement.FloatingNumberInput("value", Types.FloatingType.Float)
       )
     )
   )
@@ -243,11 +223,11 @@ class FormGenTests extends munit.FunSuite {
     subtractLongs,
     Form(
       Seq(
-        FormElement.NumberInput("a"),
+        FormElement.NumberInput("a", Types.IntType.Long),
         FormElement.NamedRef("b", "scala.Long")
       ),
       Map(
-        "scala.Long" -> FormElement.NumberInput("value")
+        "scala.Long" -> FormElement.NumberInput("value", Types.IntType.Long)
       )
     )
   )
@@ -264,11 +244,33 @@ class FormGenTests extends munit.FunSuite {
   )
 
   checkGeneratedFormEquals(
+    "sumVector",
+    sumVector,
+    Form(
+      Seq(
+        FormElement.ListInput("v", FormElement.NumberInput("elem", Types.IntType.Byte), Types.ListType.Vector)
+      ),
+      Map.empty
+    )
+  )
+
+  checkGeneratedFormEquals(
+    "productSeq",
+    productSeq,
+    Form(
+      Seq(
+        FormElement.ListInput("s", FormElement.FloatingNumberInput("elem", Types.FloatingType.Float), Types.ListType.Seq)
+      ),
+      Map.empty
+    )
+  )
+
+  checkGeneratedFormEquals(
     "isInTree",
     isInTree,
     Form(
       Seq(
-        FormElement.NumberInput("elem"),
+        FormElement.NumberInput("elem", Types.IntType.Int),
         FormElement.Dropdown(
           "tree",
           List(
@@ -285,7 +287,7 @@ class FormGenTests extends munit.FunSuite {
         )
       ),
       Map(
-        "scala.Int" -> FormElement.NumberInput("value"),
+        "scala.Int" -> FormElement.NumberInput("value", Types.IntType.Int),
         "guinep.tests.TestsData$.IntTree" -> FormElement.Dropdown(
           "value",
           List(

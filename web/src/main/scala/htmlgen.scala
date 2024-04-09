@@ -27,6 +27,8 @@ private[guinep] trait HtmlGen {
           input[type=submit]:hover { background-color: #45a049; }
           select { display: inline-block; margin-bottom: 10px; padding: 8px; box-sizing: border-box; }
           .result { margin-top: 20px; font-weight: bold; }
+          .button { text-decoration: none; background-color: #AAAAAA; color: white; padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; }
+          .button:hover { background-color: #BBBBBB; }
           """
         ),
         script(Dom.raw(jsToChangeFormBasedOnPath)),
@@ -87,40 +89,59 @@ private[guinep] trait HtmlGen {
         }
       }
 
-      function addFormElement(form, formElem, namedLookup) {
+      function addFormElement(form, formElem, namedLookup, before) {
         const br = document.createElement('br');
         if (formElem.type === 'fieldset') {
           const fieldset = document.createElement('fieldset');
           fieldset.name = formElem.name;
           const legend = document.createElement('legend');
           legend.innerText = formElem.name;
-          fieldset.appendChild(legend);
+          fieldset.insertBefore(legend, before);
           formElem.elements.forEach(subElem => addFormElement(fieldset, subElem, namedLookup));
-          form.appendChild(fieldset);
-          form.appendChild(br.cloneNode());
+          form.insertBefore(fieldset, before);
+          form.insertBefore(br.cloneNode(), before);
         } else if (formElem.type === 'dropdown') {
           const fieldset = document.createElement('fieldset');
           fieldset.name = formElem.name;
           const legend = document.createElement('legend');
           legend.innerText = formElem.name;
-          fieldset.appendChild(legend);
+          fieldset.insertBefore(legend, before);
           const nameSelect = document.createElement('select');
           nameSelect.name = 'name';
           formElem.options.forEach(option => {
             const optionElem = document.createElement('option');
             optionElem.value = option.name;
             optionElem.innerText = option.name;
-            nameSelect.appendChild(optionElem);
+            nameSelect.insertBefore(optionElem, before);
           });
-          fieldset.appendChild(nameSelect);
-          fieldset.appendChild(br.cloneNode());
+          fieldset.insertBefore(nameSelect, before);
+          fieldset.insertBefore(br.cloneNode(), before);
           const valueFieldSet = document.createElement('fieldset');
           valueFieldSet.name = 'value';
-          fieldset.appendChild(valueFieldSet);
+          fieldset.insertBefore(valueFieldSet, before);
           nameSelect.onchange = (selection) => setSubFormOnSelect(valueFieldSet, formElem, selection.target.value, namedLookup);
           setSubFormOnSelect(valueFieldSet, formElem, formElem.options[0].name, namedLookup);
-          form.appendChild(fieldset);
-          form.appendChild(br.cloneNode());
+          form.insertBefore(fieldset, before);
+          form.insertBefore(br.cloneNode(), before);
+        } else if (formElem.type == 'list') {
+          const fieldset = document.createElement('fieldset');
+          fieldset.name = formElem.name;
+          fieldset.setAttribute('ftype', 'list');
+          const legend = document.createElement('legend');
+          legend.innerText = formElem.name;
+          fieldset.insertBefore(legend, before);
+          addFormElement(fieldset, formElem.element, namedLookup);
+          form.insertBefore(fieldset, before);
+          form.insertBefore(br.cloneNode(), before);
+          const button = document.createElement('a');
+          button.innerText = '+';
+          button.href = '#';
+          button.classList.add('button');
+          button.onclick = () => {
+            addFormElement(fieldset, formElem.element, namedLookup, button);
+          };
+          fieldset.insertBefore(button, before);
+          form.insertBefore(br.cloneNode(), before);
         } else if (formElem.type == 'namedref') {
           const formElemFromLookup = namedLookup[formElem.ref];
           formElemFromLookup.name = formElem.name;
@@ -129,40 +150,40 @@ private[guinep] trait HtmlGen {
           const label = document.createElement('label');
           label.innerText = formElem.name + ': ';
           label.for = formElem.name;
-          form.appendChild(label);
+          form.insertBefore(label, before);
           const input = document.createElement('input');
           input.type = 'number';
           input.step = 'any';
           input.name = formElem.name;
           input.id = formElem.name;
           input.placeholder = formElem.name;
-          form.appendChild(input);
-          form.appendChild(br.cloneNode());
+          form.insertBefore(input, before);
+          form.insertBefore(br.cloneNode(), before);
         } else if (formElem.type == 'char') {
           const label = document.createElement('label');
           label.innerText = formElem.name + ': ';
           label.for = formElem.name;
-          form.appendChild(label);
+          form.insertBefore(label, before);
           const input = document.createElement('input');
           input.type = 'text';
           input.maxLength = '1';
           input.name = formElem.name;
           input.id = formElem.name;
           input.placeholder = formElem.name;
-          form.appendChild(input);
-          form.appendChild(br.cloneNode());
+          form.insertBefore(input, before);
+          form.insertBefore(br.cloneNode(), before);
         } else {
           const label = document.createElement('label');
           label.innerText = formElem.name + ': ';
           label.for = formElem.name;
-          form.appendChild(label);
+          form.insertBefore(label, before);
           const input = document.createElement('input');
           input.type = formElem.type;
           input.name = formElem.name;
           input.id = formElem.name;
           input.placeholder = formElem.name;
-          form.appendChild(input);
-          form.appendChild(br.cloneNode());
+          form.insertBefore(input, before);
+          form.insertBefore(br.cloneNode(), before);
         }
       }
 
@@ -190,6 +211,44 @@ private[guinep] trait HtmlGen {
         const form = this;
         const jsonData = {};
         const funName = form.funName;
+
+        const extractData = (element) => {
+          if (element.tagName === 'FIELDSET' && element.getAttribute('ftype') === 'list') {
+            const name = element.name;
+            const value = [];
+            Array.from(element.children).forEach(innerEl => {
+              const res = extractData(innerEl);
+              if (res) {
+                value.push(res[1]);
+              }
+            });
+            return [name, value];
+          } else if (element.tagName === 'FIELDSET') {
+            const name = element.name;
+            const value = {};
+            Array.from(element.children).forEach(innerEl => {
+              const res = extractData(innerEl);
+              if (res) {
+                value[res[0]] = res[1];
+              }
+            });
+            return [name, value];
+          } else if (element.tagName === 'INPUT' && element.type !== 'submit') {
+            const name = element.name;
+            const value = element.value;
+            if (element.type === 'checkbox') {
+              return [name, element.checked];
+            } else {
+              return [name, value];
+            }
+          } else if (element.tagName === 'SELECT') {
+            const name = element.name;
+            const value = element.value;
+            return [name, value];
+          } else {
+            return null;
+          }
+        };
 
         const processElement = (element, parentObj) => {
           if (element.tagName === 'FIELDSET') {
@@ -220,7 +279,10 @@ private[guinep] trait HtmlGen {
 
         Array.from(form.children).forEach(el => {
           if ((el.tagName === 'INPUT' && el.type !== 'submit') || el.tagName === 'FIELDSET') {
-            processElement(el, jsonData);
+            const res = extractData(el);
+            if (res) {
+              jsonData[res[0]] = res[1];
+            }
           }
         });
 

@@ -76,6 +76,12 @@ object TestsData {
   def codeOfChar(c: Char): Int =
     c.toInt
 
+  def sumVector(v: Vector[Byte]): Byte =
+    v.sum
+
+  def productSeq(s: Seq[Float]): Float =
+    s.product
+
   enum IntTree:
     case Leaf
     case Node(left: IntTree, value: Int, right: IntTree)
