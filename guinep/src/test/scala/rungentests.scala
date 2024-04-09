@@ -194,6 +194,20 @@ class RunGenTests extends munit.FunSuite {
   )
 
   checkGeneratedRunResultEquals(
+    "sumVector",
+    sumVector,
+    List(Vector(1.toByte, 2.toByte, 3.toByte)),
+    "6"
+  )
+
+  checkGeneratedRunResultEquals(
+    "productSeq",
+    productSeq,
+    List(Seq(1.0f, 2.0f, 3.0f)),
+    "6.0"
+  )
+
+  checkGeneratedRunResultEquals(
     "isInTree",
     isInTree,
     List(1, Map("name" -> "Node", "value" -> Map("left" -> Map("name" -> "Leaf", "value" -> Map.empty), "value" -> 1, "right" -> Map("name" -> "Leaf", "value" -> Map.empty)))),

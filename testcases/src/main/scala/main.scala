@@ -96,6 +96,12 @@ def addManyParamLists(a: Int)(b: Int): Int =
 def listProduct(list: List[Int]): Int =
   list.product
 
+def sumVector(v: Vector[Int]): Int =
+  v.sum
+
+def seqProduct(seq: Seq[Float]): Float =
+  seq.product
+
 @main
 def run: Unit =
   guinep.web(
@@ -116,6 +122,8 @@ def run: Unit =
     codeOfChar,
     isInTree,
     listProduct,
+    sumVector,
+    seqProduct,
     // isInTreeExt
     // addManyParamLists
     // printsWeirdGADT

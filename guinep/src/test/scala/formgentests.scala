@@ -244,6 +244,28 @@ class FormGenTests extends munit.FunSuite {
   )
 
   checkGeneratedFormEquals(
+    "sumVector",
+    sumVector,
+    Form(
+      Seq(
+        FormElement.ListInput("v", FormElement.NumberInput("elem", Types.IntType.Byte), Types.ListType.Vector)
+      ),
+      Map.empty
+    )
+  )
+
+  checkGeneratedFormEquals(
+    "productSeq",
+    productSeq,
+    Form(
+      Seq(
+        FormElement.ListInput("s", FormElement.FloatingNumberInput("elem", Types.FloatingType.Float), Types.ListType.Seq)
+      ),
+      Map.empty
+    )
+  )
+
+  checkGeneratedFormEquals(
     "isInTree",
     isInTree,
     Form(
