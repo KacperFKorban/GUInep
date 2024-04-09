@@ -77,45 +77,51 @@ private[guinep] object serialization:
           case guinep.model.Types.ListType.List => res
           case guinep.model.Types.ListType.Seq => res.toSeq
           case guinep.model.Types.ListType.Vector => res.toVector
+      case FormElement.Nullable(_, element) =>
+        value match
+          case Null => Right(null)
+          case _ => element.parseJSONValue(value)
       case _ => Left(s"Unsupported form element: $formElement")
 
   extension (form: Form)
     def formElementsJSONRepr =
-      val elems = form.inputs.map(_.toJSONRepr).mkString(",")
+      val elems = form.inputs.map(_.toJSONRepr()).mkString(",")
       s"[$elems]"
     def namedFormElementsJSONRepr: String =
       val entries = form.namedFormElements.toList.map { (name, formElement) =>
-        s""""$name": ${formElement.toJSONRepr}"""
+        s""""$name": ${formElement.toJSONRepr()}"""
       }
       .mkString(",")
       s"{$entries}"
 
   extension (formElement: FormElement)
-    def toJSONRepr: String = formElement match
+    def toJSONRepr(nullable: Boolean = false): String = formElement match
       case FormElement.FieldSet(name, elements) =>
-        s"""{ "name": '$name', "type": 'fieldset', "elements": [${elements.map(_.toJSONRepr).mkString(",")}] }"""
+        s"""{ "name": '$name', "type": 'fieldset', "elements": [${elements.map(_.toJSONRepr()).mkString(",")}]}"""
       case FormElement.TextInput(name) =>
-        s"""{ "name": '$name', "type": 'text' }"""
+        s"""{ "name": '$name', "type": 'text', "nullable": $nullable }"""
       case FormElement.CharInput(name) =>
-        s"""{ "name": '$name', "type": 'char' }"""
+        s"""{ "name": '$name', "type": 'char', "nullable": $nullable }"""
       case FormElement.NumberInput(name, _) =>
-        s"""{ "name": '$name', "type": 'number' }"""
+        s"""{ "name": '$name', "type": 'number', "nullable": $nullable }"""
       case FormElement.FloatingNumberInput(name, _) =>
-        s"""{ "name": '$name', "type": 'float' }"""
+        s"""{ "name": '$name', "type": 'float', "nullable": $nullable }"""
       case FormElement.CheckboxInput(name) =>
         s"""{ "name": '$name', "type": 'checkbox' }"""
       case FormElement.Dropdown(name, options) =>
         // TODO(kπ) this sortBy isn't 100% sure to be working (the only requirement is for the first constructor to not be recursive; this is a graph problem, sorta)
-        s"""{ "name": '$name', "type": 'dropdown', "options": [${options.sortBy(_._2).map { case (k, v) => s"""{"name": "$k", "value": ${v.toJSONRepr}}""" }.mkString(",")}] }"""
+        s"""{ "name": '$name', "type": 'dropdown', "options": [${options.sortBy(_._2).map { case (k, v) => s"""{"name": "$k", "value": ${v.toJSONRepr()}}""" }.mkString(",")}] }"""
       case FormElement.ListInput(name, element, _) =>
-        s"""{ "name": '$name', "type": 'list', "element": ${element.toJSONRepr} }"""
+        s"""{ "name": '$name', "type": 'list', "element": ${element.toJSONRepr()} }"""
       case FormElement.TextArea(name, rows, cols) =>
-        s"""{ "name": '$name', "type": 'textarea', "rows": ${rows.getOrElse("")}, "cols": ${cols.getOrElse("")} }"""
+        s"""{ "name": '$name', "type": 'textarea', "rows": ${rows.getOrElse("")}, "cols": ${cols.getOrElse("")}, "nullable": $nullable }"""
       case FormElement.DateInput(name) =>
-        s"""{ "name": '$name', "type": 'date' }"""
+        s"""{ "name": '$name', "type": 'date', "nullable": $nullable }"""
       case FormElement.EmailInput(name) =>
-        s"""{ "name": '$name', "type": 'email' }"""
+        s"""{ "name": '$name', "type": 'email', "nullable": $nullable }"""
       case FormElement.PasswordInput(name) =>
-        s"""{ "name": '$name', "type": 'password' }"""
+        s"""{ "name": '$name', "type": 'password', "nullable": $nullable }"""
       case FormElement.NamedRef(name, ref) =>
         s"""{ "name": '$name', "ref": '$ref', "type": 'namedref' }"""
+      case FormElement.Nullable(_, element) =>
+        element.toJSONRepr(nullable = true)

@@ -31,10 +31,10 @@ object GuinepWebConfig:
     GuinepWebConfig()
 
 private case class GuinepWeb(config: GuinepWebConfig = GuinepWebConfig.default) {
-  def withSetConfig(config: GuinepWebConfig): Unit =
+  def withSetConfig(config: GuinepWebConfig): GuinepWeb =
     this.copy(config = config)
 
-  def withModifyConfig(f: GuinepWebConfig => GuinepWebConfig): Unit =
+  def withModifyConfig(f: GuinepWebConfig => GuinepWebConfig): GuinepWeb =
     withSetConfig(f(config))
 
   /**
