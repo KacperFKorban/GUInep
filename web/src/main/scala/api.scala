@@ -57,5 +57,8 @@ private case class GuinepWeb(config: GuinepWebConfig = GuinepWebConfig.default) 
             |Ignoring duplicates""".stripMargin
       )
     println("Starting GUInep web server at http://localhost:8090/")
-    webgen.genWeb(functionsInfos.distinct.map(fun => fun.name -> fun))
+    webgen.genWeb(
+      funs = functionsInfos.distinct.map(fun => fun.name -> fun),
+      config = config
+    )
 }
