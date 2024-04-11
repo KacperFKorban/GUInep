@@ -2,6 +2,7 @@ package guinep
 
 import guinep.*
 import guinep.model.*
+import guinep.serialization.*
 import zio.*
 import zio.http.*
 import zio.http.template.*
@@ -9,6 +10,7 @@ import zio.http.codec.*
 
 private[guinep] trait HtmlGen {
   val funs: Seq[(String, Fun)]
+  val config: GuinepWebConfig
   def generateHtml =
     html(
       head(

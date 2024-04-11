@@ -5,17 +5,7 @@ import scala.quoted.*
 private[guinep] object model {
   case class Fun(name: String, form: Form, run: List[Any] => String)
 
-  case class Form(inputs: Seq[FormElement], namedFormElements: Map[String, FormElement]) {
-    def formElementsJSONRepr =
-      val elems = this.inputs.map(_.toJSONRepr).mkString(",")
-      s"[$elems]"
-    def namedFormElementsJSONRepr: String =
-      val entries = this.namedFormElements.toList.map { (name, formElement) =>
-        s""""$name": ${formElement.toJSONRepr}"""
-      }
-      .mkString(",")
-      s"{$entries}"
-  }
+  case class Form(inputs: Seq[FormElement], namedFormElements: Map[String, FormElement])
   object Form:
     given ToExpr[Form] with
       def apply(form: Form)(using Quotes): Expr[Form] = form match
@@ -99,35 +89,6 @@ private[guinep] object model {
       case PasswordInput(_) => 7
       case FieldSet(_, _) => 8
       case NamedRef(_, _) => 9
-
-    def toJSONRepr: String = this match
-      case FormElement.FieldSet(name, elements) =>
-        s"""{ "name": '$name', "type": 'fieldset', "elements": [${elements.map(_.toJSONRepr).mkString(",")}] }"""
-      case FormElement.TextInput(name) =>
-        s"""{ "name": '$name', "type": 'text' }"""
-      case FormElement.CharInput(name) =>
-        s"""{ "name": '$name', "type": 'char' }"""
-      case FormElement.NumberInput(name, _) =>
-        s"""{ "name": '$name', "type": 'number' }"""
-      case FormElement.FloatingNumberInput(name, _) =>
-        s"""{ "name": '$name', "type": 'float' }"""
-      case FormElement.CheckboxInput(name) =>
-        s"""{ "name": '$name', "type": 'checkbox' }"""
-      case FormElement.Dropdown(name, options) =>
-        // TODO(kπ) this sortBy isn't 100% sure to be working (the only requirement is for the first constructor to not be recursive; this is a graph problem, sorta)
-        s"""{ "name": '$name', "type": 'dropdown', "options": [${options.sortBy(_._2).map { case (k, v) => s"""{"name": "$k", "value": ${v.toJSONRepr}}""" }.mkString(",")}] }"""
-      case FormElement.ListInput(name, element, _) =>
-        s"""{ "name": '$name', "type": 'list', "element": ${element.toJSONRepr} }"""
-      case FormElement.TextArea(name, rows, cols) =>
-        s"""{ "name": '$name', "type": 'textarea', "rows": ${rows.getOrElse("")}, "cols": ${cols.getOrElse("")} }"""
-      case FormElement.DateInput(name) =>
-        s"""{ "name": '$name', "type": 'date' }"""
-      case FormElement.EmailInput(name) =>
-        s"""{ "name": '$name', "type": 'email' }"""
-      case FormElement.PasswordInput(name) =>
-        s"""{ "name": '$name', "type": 'password' }"""
-      case FormElement.NamedRef(name, ref) =>
-        s"""{ "name": '$name', "ref": '$ref', "type": 'namedref' }"""
 
   object FormElement:
     given ToExpr[FormElement] with

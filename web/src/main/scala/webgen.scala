@@ -13,8 +13,11 @@ import scala.util.chaining.*
 
 private[guinep] object webgen {
 
-  def genWeb(funs: Seq[(String, Fun)]): Unit = {
-    val ws = WebServer(funs)
+  def genWeb(
+    funs: Seq[(String, Fun)],
+    config: GuinepWebConfig
+  ): Unit = {
+    val ws = WebServer(funs, config)
     val runtime = Runtime.default
     Unsafe.unsafe { implicit unsafe =>
       runtime.unsafe.run(
@@ -24,8 +27,12 @@ private[guinep] object webgen {
     }
   }
 
-  class WebServer(val funs: Seq[(String, Fun)]) extends HtmlGen {
+  class WebServer(
+    val funs: Seq[(String, Fun)],
+    val config: GuinepWebConfig
+  ) extends HtmlGen {
     val funsMap = funs.toMap
+
     val app: HttpApp[Any] = Routes(
       Method.GET / PathCodec.empty ->
         handler(Response.html(generateHtml)),

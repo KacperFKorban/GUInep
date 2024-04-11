@@ -78,3 +78,44 @@ private[guinep] object serialization:
           case guinep.model.Types.ListType.Seq => res.toSeq
           case guinep.model.Types.ListType.Vector => res.toVector
       case _ => Left(s"Unsupported form element: $formElement")
+
+  extension (form: Form)
+    def formElementsJSONRepr =
+      val elems = form.inputs.map(_.toJSONRepr).mkString(",")
+      s"[$elems]"
+    def namedFormElementsJSONRepr: String =
+      val entries = form.namedFormElements.toList.map { (name, formElement) =>
+        s""""$name": ${formElement.toJSONRepr}"""
+      }
+      .mkString(",")
+      s"{$entries}"
+
+  extension (formElement: FormElement)
+    def toJSONRepr: String = formElement match
+      case FormElement.FieldSet(name, elements) =>
+        s"""{ "name": '$name', "type": 'fieldset', "elements": [${elements.map(_.toJSONRepr).mkString(",")}] }"""
+      case FormElement.TextInput(name) =>
+        s"""{ "name": '$name', "type": 'text' }"""
+      case FormElement.CharInput(name) =>
+        s"""{ "name": '$name', "type": 'char' }"""
+      case FormElement.NumberInput(name, _) =>
+        s"""{ "name": '$name', "type": 'number' }"""
+      case FormElement.FloatingNumberInput(name, _) =>
+        s"""{ "name": '$name', "type": 'float' }"""
+      case FormElement.CheckboxInput(name) =>
+        s"""{ "name": '$name', "type": 'checkbox' }"""
+      case FormElement.Dropdown(name, options) =>
+        // TODO(kπ) this sortBy isn't 100% sure to be working (the only requirement is for the first constructor to not be recursive; this is a graph problem, sorta)
+        s"""{ "name": '$name', "type": 'dropdown', "options": [${options.sortBy(_._2).map { case (k, v) => s"""{"name": "$k", "value": ${v.toJSONRepr}}""" }.mkString(",")}] }"""
+      case FormElement.ListInput(name, element, _) =>
+        s"""{ "name": '$name', "type": 'list', "element": ${element.toJSONRepr} }"""
+      case FormElement.TextArea(name, rows, cols) =>
+        s"""{ "name": '$name', "type": 'textarea', "rows": ${rows.getOrElse("")}, "cols": ${cols.getOrElse("")} }"""
+      case FormElement.DateInput(name) =>
+        s"""{ "name": '$name', "type": 'date' }"""
+      case FormElement.EmailInput(name) =>
+        s"""{ "name": '$name', "type": 'email' }"""
+      case FormElement.PasswordInput(name) =>
+        s"""{ "name": '$name', "type": 'password' }"""
+      case FormElement.NamedRef(name, ref) =>
+        s"""{ "name": '$name', "ref": '$ref', "type": 'namedref' }"""
