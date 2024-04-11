@@ -266,6 +266,17 @@ class FormGenTests extends munit.FunSuite {
   )
 
   checkGeneratedFormEquals(
+    "showNullableInt",
+    showNullableInt,
+    Form(
+      Seq(
+        FormElement.Nullable("i", FormElement.NumberInput("i", Types.IntType.Int))
+      ),
+      Map.empty
+    )
+  )
+
+  checkGeneratedFormEquals(
     "isInTree",
     isInTree,
     Form(

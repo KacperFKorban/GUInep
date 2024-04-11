@@ -82,6 +82,9 @@ object TestsData {
   def productSeq(s: Seq[Float]): Float =
     s.product
 
+  def showNullableInt(i: Int | Null): String =
+    if i == null then "null" else i.toString
+
   enum IntTree:
     case Leaf
     case Node(left: IntTree, value: Int, right: IntTree)

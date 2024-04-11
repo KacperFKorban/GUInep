@@ -208,6 +208,20 @@ class RunGenTests extends munit.FunSuite {
   )
 
   checkGeneratedRunResultEquals(
+    "showNullableInt",
+    showNullableInt,
+    List(null),
+    "null"
+  )
+
+  checkGeneratedRunResultEquals(
+    "showNullableInt",
+    showNullableInt,
+    List(1),
+    "1"
+  )
+
+  checkGeneratedRunResultEquals(
     "isInTree",
     isInTree,
     List(1, Map("name" -> "Node", "value" -> Map("left" -> Map("name" -> "Leaf", "value" -> Map.empty), "value" -> 1, "right" -> Map("name" -> "Leaf", "value" -> Map.empty)))),

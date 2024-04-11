@@ -141,6 +141,12 @@ private[guinep] object macros {
         FormElement.FloatingNumberInput(paramName, Types.FloatingType.Double)
       case AppliedType(ntpe: NamedType, List(tpeArg)) if listLikeSymbolsTypes.contains(ntpe.typeSymbol) =>
         FormElement.ListInput(paramName, functionFormElementFromTreeWithCaching("elem", tpeArg), listLikeSymbolsTypes(ntpe.typeSymbol))
+      case OrType(ltpe, rtpe) if ltpe =:= TypeRepr.of[Null] || rtpe =:= TypeRepr.of[Null] =>
+        val innerForm = if ltpe =:= TypeRepr.of[Null] then
+          functionFormElementFromTreeWithCaching(paramName, rtpe)
+        else
+          functionFormElementFromTreeWithCaching(paramName, ltpe)
+        FormElement.Nullable(paramName, innerForm)
       case ntpe if isProductTpe(ntpe) =>
         val classSymbol = ntpe.typeSymbol
         val typeDefParams = classSymbol.primaryConstructor.paramSymss.flatten.filter(_.isTypeParam)
@@ -255,6 +261,9 @@ private[guinep] object macros {
           param.select(s"asInstanceOf").appliedToType(ntpe)
         case AppliedType(ntpe: NamedType, List(tpeArg)) if listLikeSymbolsTypes.contains(ntpe.typeSymbol) =>
           param.select("asInstanceOf").appliedToType(paramTpe)
+        case OrType(ltpe, rtpe) if ltpe =:= TypeRepr.of[Null] || rtpe =:= TypeRepr.of[Null] =>
+          val castedParam = param.select("asInstanceOf").appliedToType(paramTpe)
+          '{ if ${param.asExpr} == null then null else ${castedParam.asExpr} }.asTerm
         case ntpe if isCaseObjectTpe(ntpe) && ntpe.typeSymbol.flags.is(Flags.Module) =>
           Ref(ntpe.typeSymbol.companionModule)
         case ntpe if isCaseObjectTpe(ntpe) =>

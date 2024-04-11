@@ -159,6 +159,12 @@ private[guinep] trait HtmlGen {
           input.name = formElem.name;
           input.id = formElem.name;
           input.placeholder = formElem.name;
+          if (formElem.nullable) {
+            input.setAttribute('nullable', formElem.nullable);
+          }
+          if (${config.requireNonNullableInputs} && !formElem.nullable) {
+            input.setAttribute('required', !formElem.nullable);
+          }
           form.insertBefore(input, before);
           form.insertBefore(br.cloneNode(), before);
         } else if (formElem.type == 'char') {
@@ -172,6 +178,12 @@ private[guinep] trait HtmlGen {
           input.name = formElem.name;
           input.id = formElem.name;
           input.placeholder = formElem.name;
+          if (formElem.nullable) {
+            input.setAttribute('nullable', formElem.nullable);
+          }
+          if (${config.requireNonNullableInputs} && !formElem.nullable) {
+            input.setAttribute('required', !formElem.nullable);
+          }
           form.insertBefore(input, before);
           form.insertBefore(br.cloneNode(), before);
         } else {
@@ -184,6 +196,12 @@ private[guinep] trait HtmlGen {
           input.name = formElem.name;
           input.id = formElem.name;
           input.placeholder = formElem.name;
+          if (formElem.nullable) {
+            input.setAttribute('nullable', formElem.nullable);
+          }
+          if (${config.requireNonNullableInputs} && !formElem.nullable) {
+            input.setAttribute('required', !formElem.nullable);
+          }
           form.insertBefore(input, before);
           form.insertBefore(br.cloneNode(), before);
         }
@@ -240,6 +258,8 @@ private[guinep] trait HtmlGen {
             const value = element.value;
             if (element.type === 'checkbox') {
               return [name, element.checked];
+            } else if (element.getAttribute('nullable') && value === '') {
+              return [name, null];
             } else {
               return [name, value];
             }

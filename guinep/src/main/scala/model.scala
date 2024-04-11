@@ -47,7 +47,6 @@ private[guinep] object model {
       case List
       case Seq
       case Vector
-      case Array
 
     object ListType:
       given ToExpr[ListType] with
@@ -74,6 +73,7 @@ private[guinep] object model {
     case PasswordInput(override val name: String) extends FormElement(name)
     case FieldSet(override val name: String, elements: List[FormElement]) extends FormElement(name)
     case NamedRef(override val name: String, ref: String) extends FormElement(name)
+    case Nullable(override val name: String, element: FormElement) extends FormElement(name)
 
     def constrOrd: Int = this match
       case TextInput(_) => 0
@@ -89,6 +89,7 @@ private[guinep] object model {
       case PasswordInput(_) => 7
       case FieldSet(_, _) => 8
       case NamedRef(_, _) => 9
+      case Nullable(_, elem) => elem.constrOrd
 
   object FormElement:
     given ToExpr[FormElement] with
@@ -119,6 +120,8 @@ private[guinep] object model {
           '{ FormElement.PasswordInput(${Expr(name)}) }
         case FormElement.NamedRef(name, ref) =>
           '{ FormElement.NamedRef(${Expr(name)}, ${Expr(ref)}) }
+        case FormElement.Nullable(name, element) =>
+          '{ FormElement.Nullable(${Expr(name)}, ${Expr(element)}) }
 
     // This ordering is a hack to avoid placing recursive constructors as first options in a dropdown
     given Ordering[FormElement] = new Ordering[FormElement] {
@@ -130,6 +133,10 @@ private[guinep] object model {
             elems1.size - elems2.size
           case (FormElement.Dropdown(_, opts1), FormElement.Dropdown(_, opts2)) =>
             opts1.size - opts2.size
+          case (FormElement.Nullable(_, elem1), FormElement.Nullable(_, elem2)) =>
+            compare(elem1, elem2)
+          case (FormElement.ListInput(_, elem1, _), FormElement.ListInput(_, elem2, _)) =>
+            compare(elem1, elem2)
           case _ => 0
   }
 }

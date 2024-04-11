@@ -102,29 +102,35 @@ def sumVector(v: Vector[Int]): Int =
 def seqProduct(seq: Seq[Float]): Float =
   seq.product
 
+def showNullableInt(i: Int | Null): String =
+  if i == null then "null" else i.toString
+
 @main
 def run: Unit =
-  guinep.web(
-    upperCaseText,
-    add,
-    concat,
-    giveALongText,
-    addObj,
-    greetMaybeName,
-    greetInLanguage,
-    nameWithPossiblePrefix,
-    nameWithPossiblePrefix1,
-    roll20,
-    roll6(),
-    concatAll,
-    showDouble,
-    divideFloats,
-    codeOfChar,
-    isInTree,
-    listProduct,
-    sumVector,
-    seqProduct,
-    // isInTreeExt
-    // addManyParamLists
-    // printsWeirdGADT
-  )
+  guinep.web
+    .withModifyConfig(_.copy(requireNonNullableInputs = true))
+    .apply(
+      upperCaseText,
+      add,
+      concat,
+      giveALongText,
+      addObj,
+      greetMaybeName,
+      greetInLanguage,
+      nameWithPossiblePrefix,
+      nameWithPossiblePrefix1,
+      roll20,
+      roll6(),
+      concatAll,
+      showDouble,
+      divideFloats,
+      codeOfChar,
+      isInTree,
+      listProduct,
+      sumVector,
+      seqProduct,
+      showNullableInt
+      // isInTreeExt
+      // addManyParamLists
+      // printsWeirdGADT
+    )
