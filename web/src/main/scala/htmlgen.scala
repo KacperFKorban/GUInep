@@ -18,7 +18,7 @@ private[guinep] trait HtmlGen {
         style(
           """
           body { font-family: Arial, sans-serif; }
-          .sidebar { position: fixed; left: 0; top: 0; width: 200px; height: 100vh; background-color: #f0f0f0; padding: 20px; }
+          .sidebar { position: fixed; left: 0; top: 0; width: 200px; height: 100vh; background-color: #f0f0f0; padding: 20px; overflow-y: auto; }
           .sidebar a { display: block; padding: 10px; margin-bottom: 10px; background-color: #007bff; color: white; text-decoration: none; text-align: center; border-radius: 5px; }
           .sidebar a:hover { background-color: #0056b3; }
           .main-content { margin-left: 232px; padding: 40px; display: flex; justify-content: center; padding-top: 20px; }
@@ -29,8 +29,8 @@ private[guinep] trait HtmlGen {
           input[type=submit]:hover { background-color: #45a049; }
           select { display: inline-block; margin-bottom: 10px; padding: 8px; box-sizing: border-box; }
           .result { margin-top: 20px; font-weight: bold; }
-          .button { text-decoration: none; background-color: #AAAAAA; color: white; padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; }
-          .button:hover { background-color: #BBBBBB; }
+          .add-button { text-decoration: none; background-color: #AAAAAA; color: white; padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; }
+          .add-button:hover { background-color: #BBBBBB; }
           """
         ),
         script(Dom.raw(jsToChangeFormBasedOnPath)),
@@ -138,7 +138,7 @@ private[guinep] trait HtmlGen {
           const button = document.createElement('a');
           button.innerText = '+';
           button.href = '#';
-          button.classList.add('button');
+          button.classList.add('add-button');
           button.onclick = () => {
             addFormElement(fieldset, formElem.element, namedLookup, button);
           };

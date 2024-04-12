@@ -16,6 +16,7 @@ private[guinep] object model {
     enum FloatingType:
       case Double
       case Float
+      case BigDecimal
 
     object FloatingType:
       given ToExpr[FloatingType] with
@@ -24,12 +25,15 @@ private[guinep] object model {
             '{ FloatingType.Double }
           case FloatingType.Float =>
             '{ FloatingType.Float }
+          case FloatingType.BigDecimal =>
+            '{ FloatingType.BigDecimal }
 
     enum IntType:
       case Int
       case Long
       case Byte
       case Short
+      case BigInt
 
     object IntType:
       given ToExpr[IntType] with
@@ -42,6 +46,8 @@ private[guinep] object model {
             '{ IntType.Byte }
           case IntType.Short =>
             '{ IntType.Short }
+          case IntType.BigInt =>
+            '{ IntType.BigInt }
 
     enum ListType:
       case List

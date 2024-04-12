@@ -277,6 +277,28 @@ class FormGenTests extends munit.FunSuite {
   )
 
   checkGeneratedFormEquals(
+    "factorialBigInt",
+    factorialBigInt,
+    Form(
+      Seq(
+        FormElement.NumberInput("n", Types.IntType.BigInt)
+      ),
+      Map.empty
+    )
+  )
+
+  checkGeneratedFormEquals(
+    "inverseBigDecimal",
+    inverseBigDecimal,
+    Form(
+      Seq(
+        FormElement.FloatingNumberInput("bd", Types.FloatingType.BigDecimal)
+      ),
+      Map.empty
+    )
+  )
+
+  checkGeneratedFormEquals(
     "isInTree",
     isInTree,
     Form(

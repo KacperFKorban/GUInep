@@ -222,6 +222,20 @@ class RunGenTests extends munit.FunSuite {
   )
 
   checkGeneratedRunResultEquals(
+    "factorialBigInt",
+    factorialBigInt,
+    List(BigInt(5)),
+    "120"
+  )
+
+  checkGeneratedRunResultEquals(
+    "inverseBigDecimal",
+    inverseBigDecimal,
+    List(BigDecimal(2)),
+    "0.5"
+  )
+
+  checkGeneratedRunResultEquals(
     "isInTree",
     isInTree,
     List(1, Map("name" -> "Node", "value" -> Map("left" -> Map("name" -> "Leaf", "value" -> Map.empty), "value" -> 1, "right" -> Map("name" -> "Leaf", "value" -> Map.empty)))),
