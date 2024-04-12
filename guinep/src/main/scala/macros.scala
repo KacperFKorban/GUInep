@@ -214,7 +214,13 @@ private[guinep] object macros {
               report.errorAndAbort(s"""PANIC: Could not find applied parent for ${childSym.name}, parents: ${parents.map(_.show).mkString(",")}""", classDef.pos)
             case Some(parentExtendsArgs) =>
               val childDefArgs = classDef.symbol.primaryConstructor.paramSymss.flatten.filter(_.isTypeParam).map(_.typeRef)
+              // We want to traverse parentExtendsArgs and parentArgs together and create a map of mappings from elements of childDefArgs to their counterparts
+              // We also need a method of merging two types when they are mapped twice e.g. `Child[T] <: Parent[List[T], T => ()]` and `Parent[List[ScalaNumber], Int => ()]`
+              //   this might map to some king of type bounds (and will also depend on the variance of Parent)
+              // For every element form childDefArgs, that doesn't have a found counterpart, we want to give it a default type (appropriate bound based on variance or String?)
+              // Also, some cases might not be reachable for a given parentArgs e.g. `Child <: Parent[Int]` and `Parent[String]`
               val childArgTpes = childDefArgs.map { arg =>
+                // This might substitute constant types e.g. `Child1 <: Parent1[Int]`
                 arg.substituteTypes(parentExtendsArgs.map(_.typeSymbol), parentArgs)
               }
               // TODO(kπ) might want to handle the case when there are unsubstituted type parameters left

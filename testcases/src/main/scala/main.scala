@@ -56,8 +56,8 @@ sealed trait WeirdGADT[+A]
 case class IntValue(value: Int) extends WeirdGADT[Int]
 case class SomeValue[+A](value: A) extends WeirdGADT[A]
 case class SomeOtherValue[+A, +B](value: A, value2: B) extends WeirdGADT[A]
+case class SomeListValue[+A](value: List[A]) extends WeirdGADT[List[A]]
 
-// This fails on unknown type params
 def printsWeirdGADT(g: WeirdGADT[String]): String = g match
   case SomeValue(value) => s"SomeValue($value)"
   case SomeOtherValue(value, value2) => s"SomeOtherValue($value, $value2)"
@@ -147,7 +147,7 @@ def run: Unit =
       inverseBigDecimal,
       sayBye,
       runTakesUnit,
+      printsWeirdGADT
       // isInTreeExt
       // addManyParamLists
-      // printsWeirdGADT
     )
