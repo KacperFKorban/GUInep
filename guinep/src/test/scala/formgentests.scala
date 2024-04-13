@@ -299,6 +299,17 @@ class FormGenTests extends munit.FunSuite {
   )
 
   checkGeneratedFormEquals(
+    "sayBye",
+    sayBye,
+    Form(
+      Seq(
+        FormElement.HiddenInput("unit", "Unit")
+      ),
+      Map.empty
+    )
+  )
+
+  checkGeneratedFormEquals(
     "isInTree",
     isInTree,
     Form(

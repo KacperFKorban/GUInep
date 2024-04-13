@@ -36,8 +36,10 @@ private[guinep] object serialization:
           m <- value.asObject.toRight(s"Invalid object: $value")
           res <- elements.parseJSONValue(m)
         } yield res
-      case FormElement.TextInput(_) => value.asString.toRight(s"Invalid string: $value")
-      case FormElement.CharInput(_) => value.asString.flatMap(_.headOption).toRight(s"Invalid char: $value")
+      case FormElement.TextInput(_) =>
+        value.asString.toRight(s"Invalid string: $value")
+      case FormElement.CharInput(_) =>
+        value.asString.flatMap(_.headOption).toRight(s"Invalid char: $value")
       case FormElement.NumberInput(_, tpe) => tpe match
         case Types.IntType.Int =>
           value.asString.flatMap(_.toIntOption).toRight(s"Invalid int: $value")
@@ -56,7 +58,10 @@ private[guinep] object serialization:
           value.asString.flatMap(_.toFloatOption).toRight(s"Invalid float: $value")
         case Types.FloatingType.BigDecimal =>
           value.asString.map(BigDecimal.apply).toRight(s"Invalid big decimal: $value")
-      case FormElement.CheckboxInput(_) => value.asBoolean.toRight(s"Invalid boolean: $value")
+      case FormElement.CheckboxInput(_) =>
+        value.asBoolean.toRight(s"Invalid boolean: $value")
+      case FormElement.HiddenInput(_, "Unit") =>
+        Right(())
       case FormElement.Dropdown(_, options) =>
         for {
           v <- value.asObject.toRight(s"Invalid object: $value")
@@ -69,7 +74,8 @@ private[guinep] object serialization:
           "name" -> ddName,
           "value" -> res
         )
-      case FormElement.TextArea(_, _, _) => Right(value)
+      case FormElement.TextArea(_, _, _) =>
+        Right(value)
       case FormElement.NamedRef(name, ref) =>
         val formElementFromLookup = formElementLookup(ref).modify(_.name).setTo(name)
         formElementFromLookup.parseJSONValue(value)
@@ -85,7 +91,8 @@ private[guinep] object serialization:
         value match
           case Null => Right(null)
           case _ => element.parseJSONValue(value)
-      case _ => Left(s"Unsupported form element: $formElement")
+      case _ =>
+        Left(s"Unsupported form element: $formElement")
 
   extension (form: Form)
     def formElementsJSONRepr =
@@ -112,6 +119,8 @@ private[guinep] object serialization:
         s"""{ "name": '$name', "type": 'float', "nullable": $nullable }"""
       case FormElement.CheckboxInput(name) =>
         s"""{ "name": '$name', "type": 'checkbox' }"""
+      case FormElement.HiddenInput(name, underlying) =>
+        s"""{ "name": '$name', "type": 'hidden', "value": '$underlying' }"""
       case FormElement.Dropdown(name, options) =>
         // TODO(kπ) this sortBy isn't 100% sure to be working (the only requirement is for the first constructor to not be recursive; this is a graph problem, sorta)
         s"""{ "name": '$name', "type": 'dropdown', "options": [${options.sortBy(_._2).map { case (k, v) => s"""{"name": "$k", "value": ${v.toJSONRepr()}}""" }.mkString(",")}] }"""

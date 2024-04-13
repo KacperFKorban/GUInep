@@ -150,6 +150,8 @@ private[guinep] object macros {
         FormElement.FloatingNumberInput(paramName, Types.FloatingType.Double)
       case ntpe: NamedType if ntpe =:= TypeRepr.of[BigDecimal] =>
         FormElement.FloatingNumberInput(paramName, Types.FloatingType.BigDecimal)
+      case ntpe: NamedType if ntpe =:= TypeRepr.of[Unit] =>
+        FormElement.HiddenInput(paramName, "Unit")
       case AppliedType(ntpe: NamedType, List(tpeArg)) if listLikeSymbolsTypes.contains(ntpe.typeSymbol) =>
         FormElement.ListInput(paramName, functionFormElementFromTreeWithCaching("elem", tpeArg), listLikeSymbolsTypes(ntpe.typeSymbol))
       case OrType(ltpe, rtpe) if ltpe =:= TypeRepr.of[Null] || rtpe =:= TypeRepr.of[Null] =>
@@ -270,6 +272,8 @@ private[guinep] object macros {
           param.select("asInstanceOf", 1).appliedToType(ntpe)
         case ntpe: NamedType if ntpe =:= TypeRepr.of[Double] || ntpe =:= TypeRepr.of[Float] || ntpe =:= TypeRepr.of[BigDecimal] =>
           param.select(s"asInstanceOf", 1).appliedToType(ntpe)
+        case ntpe: NamedType if ntpe =:= TypeRepr.of[Unit] =>
+          param.select("asInstanceOf", 1).appliedToType(ntpe)
         case AppliedType(ntpe: NamedType, List(tpeArg)) if listLikeSymbolsTypes.contains(ntpe.typeSymbol) =>
           param.select("asInstanceOf", 1).appliedToType(paramTpe)
         case OrType(ltpe, rtpe) if ltpe =:= TypeRepr.of[Null] || rtpe =:= TypeRepr.of[Null] =>

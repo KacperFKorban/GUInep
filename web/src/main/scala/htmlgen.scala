@@ -187,13 +187,16 @@ private[guinep] trait HtmlGen {
           form.insertBefore(input, before);
           form.insertBefore(br.cloneNode(), before);
         } else {
-          const label = document.createElement('label');
-          label.innerText = formElem.name + ': ';
-          label.for = formElem.name;
-          form.insertBefore(label, before);
+          if (formElem.type !== 'hidden') {
+            const label = document.createElement('label');
+            label.innerText = formElem.name + ': ';
+            label.for = formElem.name;
+            form.insertBefore(label, before);
+          }
           const input = document.createElement('input');
           input.type = formElem.type;
           input.name = formElem.name;
+          input.value = formElem.value;
           input.id = formElem.name;
           input.placeholder = formElem.name;
           if (formElem.nullable) {

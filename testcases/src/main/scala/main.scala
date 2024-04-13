@@ -114,10 +114,14 @@ def inverseBigDecimal(bd: BigDecimal): BigDecimal =
 def sayBye(unit: Unit): String =
   "Bye!"
 
+case class TakesUnit(unit: Unit)
+
+def runTakesUnit(takesUnit: TakesUnit): Unit =
+  ()
+
 @main
 def run: Unit =
   guinep.web
-    .withModifyConfig(_.copy(requireNonNullableInputs = true))
     .apply(
       upperCaseText,
       add,
@@ -141,6 +145,8 @@ def run: Unit =
       showNullableInt,
       factorialBigInt,
       inverseBigDecimal,
+      sayBye,
+      runTakesUnit,
       // isInTreeExt
       // addManyParamLists
       // printsWeirdGADT
