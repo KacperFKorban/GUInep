@@ -16,6 +16,7 @@ private[guinep] object model {
     enum FloatingType:
       case Double
       case Float
+      case BigDecimal
 
     object FloatingType:
       given ToExpr[FloatingType] with
@@ -24,12 +25,15 @@ private[guinep] object model {
             '{ FloatingType.Double }
           case FloatingType.Float =>
             '{ FloatingType.Float }
+          case FloatingType.BigDecimal =>
+            '{ FloatingType.BigDecimal }
 
     enum IntType:
       case Int
       case Long
       case Byte
       case Short
+      case BigInt
 
     object IntType:
       given ToExpr[IntType] with
@@ -42,6 +46,8 @@ private[guinep] object model {
             '{ IntType.Byte }
           case IntType.Short =>
             '{ IntType.Short }
+          case IntType.BigInt =>
+            '{ IntType.BigInt }
 
     enum ListType:
       case List
@@ -65,6 +71,7 @@ private[guinep] object model {
     case NumberInput(override val name: String, underlying: Types.IntType) extends FormElement(name)
     case FloatingNumberInput(override val name: String, underlying: Types.FloatingType) extends FormElement(name)
     case CheckboxInput(override val name: String) extends FormElement(name)
+    case HiddenInput(override val name: String, underlying: String) extends FormElement(name)
     case Dropdown(override val name: String, options: List[(String, FormElement)]) extends FormElement(name)
     case ListInput(override val name: String, element: FormElement, underlying: Types.ListType) extends FormElement(name)
     case TextArea(override val name: String, rows: Option[Int] = None, cols: Option[Int] = None) extends FormElement(name)
@@ -80,6 +87,7 @@ private[guinep] object model {
       case CharInput(_) => 0
       case NumberInput(_, _) => 1
       case FloatingNumberInput(_, _) => 1
+      case HiddenInput(_, _) => 1
       case CheckboxInput(_) => 2
       case Dropdown(_, _) => 3
       case ListInput(_, _, _) => 3
@@ -106,6 +114,8 @@ private[guinep] object model {
           '{ FormElement.FloatingNumberInput(${Expr(name)}, ${Expr(underlying)}) }
         case FormElement.CheckboxInput(name) =>
           '{ FormElement.CheckboxInput(${Expr(name)}) }
+        case FormElement.HiddenInput(name, underlying) =>
+          '{ FormElement.HiddenInput(${Expr(name)}, ${Expr(underlying)}) }
         case FormElement.Dropdown(name, options) =>
           '{ FormElement.Dropdown(${Expr(name)}, ${Expr(options)}) }
         case FormElement.ListInput(name, element, underlying) =>

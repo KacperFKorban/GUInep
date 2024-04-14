@@ -37,13 +37,20 @@ private[guinep] object macros {
     extension (t: Term)
       private def select(s: Term): Term = Select(t, s.symbol)
       private def select(s: String): Term =
-        t.select(
-          t.tpe
-            .typeSymbol
-            .methodMember(s)
-            .headOption.
-            getOrElse(report.errorAndAbort(s"PANIC: No member $s in term ${t.show} with type ${t.tpe.show}"))
-        )
+        val sym = t.tpe
+          .typeSymbol
+          .methodMember(s)
+          .headOption
+          .getOrElse(report.errorAndAbort(s"PANIC: No member $s in term ${t.show} with type ${t.tpe.show}"))
+        Select(t, sym)
+      private def select(s: String, argnum: Int): Term =
+        val sym = t.tpe
+          .typeSymbol
+          .methodMember(s)
+          .filter(_.paramSymss.flatten.size == argnum)
+          .headOption
+          .getOrElse(report.errorAndAbort(s"PANIC: No member $s in term ${t.show} with type ${t.tpe.show}"))
+        Select(t, sym)
 
     extension (s: Symbol)
       private def prettyName: String =
@@ -133,12 +140,18 @@ private[guinep] object macros {
         FormElement.NumberInput(paramName, Types.IntType.Short)
       case ntpe: NamedType if ntpe =:= TypeRepr.of[Byte] =>
         FormElement.NumberInput(paramName, Types.IntType.Byte)
+      case ntpe: NamedType if ntpe =:= TypeRepr.of[BigInt] =>
+        FormElement.NumberInput(paramName, Types.IntType.BigInt)
       case ntpe: NamedType if ntpe =:= TypeRepr.of[Boolean] =>
         FormElement.CheckboxInput(paramName)
       case ntpe: NamedType if ntpe =:= TypeRepr.of[Float] =>
         FormElement.FloatingNumberInput(paramName, Types.FloatingType.Float)
       case ntpe: NamedType if ntpe =:= TypeRepr.of[Double] =>
         FormElement.FloatingNumberInput(paramName, Types.FloatingType.Double)
+      case ntpe: NamedType if ntpe =:= TypeRepr.of[BigDecimal] =>
+        FormElement.FloatingNumberInput(paramName, Types.FloatingType.BigDecimal)
+      case ntpe: NamedType if ntpe =:= TypeRepr.of[Unit] =>
+        FormElement.HiddenInput(paramName, "Unit")
       case AppliedType(ntpe: NamedType, List(tpeArg)) if listLikeSymbolsTypes.contains(ntpe.typeSymbol) =>
         FormElement.ListInput(paramName, functionFormElementFromTreeWithCaching("elem", tpeArg), listLikeSymbolsTypes(ntpe.typeSymbol))
       case OrType(ltpe, rtpe) if ltpe =:= TypeRepr.of[Null] || rtpe =:= TypeRepr.of[Null] =>
@@ -249,20 +262,22 @@ private[guinep] object macros {
     private def constructArg(paramTpe: TypeRepr, param: Term)(using ConstrContext): Term = {
       paramTpe match {
         case ntpe: NamedType if ntpe =:= TypeRepr.of[String] =>
-          param.select("asInstanceOf").appliedToType(ntpe)
+          param.select("asInstanceOf", 1).appliedToType(ntpe)
         case ntpe: NamedType if ntpe =:= TypeRepr.of[Char] =>
-          param.select("asInstanceOf").appliedToType(ntpe)
+          param.select("asInstanceOf", 1).appliedToType(ntpe)
         case ntpe: NamedType
-        if ntpe =:= TypeRepr.of[Int] || ntpe =:= TypeRepr.of[Long] || ntpe =:= TypeRepr.of[Short] || ntpe =:= TypeRepr.of[Byte] =>
-          param.select(s"asInstanceOf").appliedToType(ntpe)
+        if ntpe =:= TypeRepr.of[Int] || ntpe =:= TypeRepr.of[Long] || ntpe =:= TypeRepr.of[Short] || ntpe =:= TypeRepr.of[Byte] || ntpe =:= TypeRepr.of[BigInt] =>
+          param.select(s"asInstanceOf", 1).appliedToType(ntpe)
         case ntpe: NamedType if ntpe =:= TypeRepr.of[Boolean] =>
-          param.select("asInstanceOf").appliedToType(ntpe)
-        case ntpe: NamedType if ntpe =:= TypeRepr.of[Double] || ntpe =:= TypeRepr.of[Float] =>
-          param.select(s"asInstanceOf").appliedToType(ntpe)
+          param.select("asInstanceOf", 1).appliedToType(ntpe)
+        case ntpe: NamedType if ntpe =:= TypeRepr.of[Double] || ntpe =:= TypeRepr.of[Float] || ntpe =:= TypeRepr.of[BigDecimal] =>
+          param.select(s"asInstanceOf", 1).appliedToType(ntpe)
+        case ntpe: NamedType if ntpe =:= TypeRepr.of[Unit] =>
+          param.select("asInstanceOf", 1).appliedToType(ntpe)
         case AppliedType(ntpe: NamedType, List(tpeArg)) if listLikeSymbolsTypes.contains(ntpe.typeSymbol) =>
-          param.select("asInstanceOf").appliedToType(paramTpe)
+          param.select("asInstanceOf", 1).appliedToType(paramTpe)
         case OrType(ltpe, rtpe) if ltpe =:= TypeRepr.of[Null] || rtpe =:= TypeRepr.of[Null] =>
-          val castedParam = param.select("asInstanceOf").appliedToType(paramTpe)
+          val castedParam = param.select("asInstanceOf", 1).appliedToType(paramTpe)
           '{ if ${param.asExpr} == null then null else ${castedParam.asExpr} }.asTerm
         case ntpe if isCaseObjectTpe(ntpe) && ntpe.typeSymbol.flags.is(Flags.Module) =>
           Ref(ntpe.typeSymbol.companionModule)
@@ -275,7 +290,7 @@ private[guinep] object macros {
           val paramValue = '{ ${param.asExpr}.asInstanceOf[Map[String, Any]] }.asTerm
           val args = fields.collect { case field: ValDef =>
             val fieldName = field.name
-            val fieldValue = paramValue.select("apply").appliedTo(Literal(StringConstant(fieldName)))
+            val fieldValue = paramValue.select("apply", 1).appliedTo(Literal(StringConstant(fieldName)))
             constructArgWithCaching(
               field.tpt.tpe.substituteTypes(typeDefParams, ntpe.typeArgs),
               fieldValue
@@ -288,14 +303,14 @@ private[guinep] object macros {
           val children = classSymbol.children
           val childrenAppliedTpes = children.map(child => appliedChild(child, classSymbol, ntpe.typeArgs)).map(_.stripAnnots)
           val paramMap = '{ ${param.asExpr}.asInstanceOf[Map[String, Any]] }.asTerm
-          val paramName = paramMap.select("apply").appliedTo(Literal(StringConstant("name")))
-          val paramValue = paramMap.select("apply").appliedTo(Literal(StringConstant("value")))
+          val paramName = paramMap.select("apply", 1).appliedTo(Literal(StringConstant("name")))
+          val paramValue = paramMap.select("apply", 1).appliedTo(Literal(StringConstant("value")))
           children.zip(childrenAppliedTpes).foldRight[Term]{
             '{ throw new RuntimeException(s"Class ${${paramName.asExpr}} is not a child of ${${Expr(className)}}") }.asTerm
           } { case ((child, childAppliedTpe), acc) =>
             val childName = Literal(StringConstant(child.prettyName))
             If(
-              paramName.select("equals").appliedTo(childName),
+              paramName.select("equals", 1).appliedTo(childName),
               constructArgWithCaching(childAppliedTpe, paramValue),
               acc
             )
@@ -316,7 +331,7 @@ private[guinep] object macros {
           { case (sym, List(params: Term)) =>
             val args = functionParams(f).zipWithIndex.map { case (valdef, i) =>
               val paramTpe = valdef.tpt.tpe
-              val param = params.select("apply").appliedTo(Literal(IntConstant(i)))
+              val param = params.select("apply", 1).appliedTo(Literal(IntConstant(i)))
               constructArgWithCaching(paramTpe, param)
             }.toList
             val aply = l.select("apply")
@@ -325,7 +340,7 @@ private[guinep] object macros {
                 aply.appliedToNone
               else
                 aply.appliedToArgs(args)
-            res.select("toString").appliedToNone
+            res.select("toString", 0).appliedToNone
           }
         )
         Block(
@@ -337,7 +352,7 @@ private[guinep] object macros {
           Symbol.spliceOwner,
           MethodType(List("inputs"))(_ => List(TypeRepr.of[List[Any]]),  _ => TypeRepr.of[String]),
           { case (sym, List(params: Term)) =>
-            t.select("toString").appliedToNone
+            t.select("toString", 0).appliedToNone
           }
         ).asExprOf[List[Any] => String]
       case a@Apply(Ident(_), Nil) =>
@@ -345,7 +360,7 @@ private[guinep] object macros {
           Symbol.spliceOwner,
           MethodType(List("inputs"))(_ => List(TypeRepr.of[List[Any]]),  _ => TypeRepr.of[String]),
           { case (sym, List(params: Term)) =>
-            a.select("toString").appliedToNone
+            a.select("toString", 0).appliedToNone
           }
         ).asExprOf[List[Any] => String]
       case _ =>

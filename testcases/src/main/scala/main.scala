@@ -105,10 +105,23 @@ def seqProduct(seq: Seq[Float]): Float =
 def showNullableInt(i: Int | Null): String =
   if i == null then "null" else i.toString
 
+def factorialBigInt(n: BigInt): BigInt =
+  if n == 0 then 1 else n * factorialBigInt(n - 1)
+
+def inverseBigDecimal(bd: BigDecimal): BigDecimal =
+  BigDecimal(1) / bd
+
+def sayBye(unit: Unit): String =
+  "Bye!"
+
+case class TakesUnit(unit: Unit)
+
+def runTakesUnit(takesUnit: TakesUnit): Unit =
+  ()
+
 @main
 def run: Unit =
   guinep.web
-    .withModifyConfig(_.copy(requireNonNullableInputs = true))
     .apply(
       upperCaseText,
       add,
@@ -129,7 +142,11 @@ def run: Unit =
       listProduct,
       sumVector,
       seqProduct,
-      showNullableInt
+      showNullableInt,
+      factorialBigInt,
+      inverseBigDecimal,
+      sayBye,
+      runTakesUnit,
       // isInTreeExt
       // addManyParamLists
       // printsWeirdGADT

@@ -36,23 +36,32 @@ private[guinep] object serialization:
           m <- value.asObject.toRight(s"Invalid object: $value")
           res <- elements.parseJSONValue(m)
         } yield res
-      case FormElement.TextInput(_) => value.asString.toRight(s"Invalid string: $value")
-      case FormElement.CharInput(_) => value.asString.flatMap(_.headOption).toRight(s"Invalid char: $value")
+      case FormElement.TextInput(_) =>
+        value.asString.toRight(s"Invalid string: $value")
+      case FormElement.CharInput(_) =>
+        value.asString.flatMap(_.headOption).toRight(s"Invalid char: $value")
       case FormElement.NumberInput(_, tpe) => tpe match
-        case guinep.model.Types.IntType.Int =>
+        case Types.IntType.Int =>
           value.asString.flatMap(_.toIntOption).toRight(s"Invalid int: $value")
-        case guinep.model.Types.IntType.Long =>
+        case Types.IntType.Long =>
           value.asString.flatMap(_.toLongOption).toRight(s"Invalid long: $value")
-        case guinep.model.Types.IntType.Byte =>
+        case Types.IntType.Byte =>
           value.asString.flatMap(_.toByteOption).toRight(s"Invalid byte: $value")
-        case guinep.model.Types.IntType.Short =>
+        case Types.IntType.Short =>
           value.asString.flatMap(_.toShortOption).toRight(s"Invalid short: $value")
+        case Types.IntType.BigInt =>
+          value.asString.map(BigInt.apply).toRight(s"Invalid big int: $value")
       case FormElement.FloatingNumberInput(_, tpe) => tpe match
-        case guinep.model.Types.FloatingType.Double =>
+        case Types.FloatingType.Double =>
           value.asString.flatMap(_.toDoubleOption).toRight(s"Invalid double: $value")
-        case guinep.model.Types.FloatingType.Float =>
+        case Types.FloatingType.Float =>
           value.asString.flatMap(_.toFloatOption).toRight(s"Invalid float: $value")
-      case FormElement.CheckboxInput(_) => value.asBoolean.toRight(s"Invalid boolean: $value")
+        case Types.FloatingType.BigDecimal =>
+          value.asString.map(BigDecimal.apply).toRight(s"Invalid big decimal: $value")
+      case FormElement.CheckboxInput(_) =>
+        value.asBoolean.toRight(s"Invalid boolean: $value")
+      case FormElement.HiddenInput(_, "Unit") =>
+        Right(())
       case FormElement.Dropdown(_, options) =>
         for {
           v <- value.asObject.toRight(s"Invalid object: $value")
@@ -65,7 +74,8 @@ private[guinep] object serialization:
           "name" -> ddName,
           "value" -> res
         )
-      case FormElement.TextArea(_, _, _) => Right(value)
+      case FormElement.TextArea(_, _, _) =>
+        Right(value)
       case FormElement.NamedRef(name, ref) =>
         val formElementFromLookup = formElementLookup(ref).modify(_.name).setTo(name)
         formElementFromLookup.parseJSONValue(value)
@@ -74,14 +84,15 @@ private[guinep] object serialization:
           jsonLst <- value.asArray.map(_.toList).toRight(s"Invalid array $value")
           res <- sequenceEither(jsonLst.map(element.parseJSONValue))
         } yield tpe match
-          case guinep.model.Types.ListType.List => res
-          case guinep.model.Types.ListType.Seq => res.toSeq
-          case guinep.model.Types.ListType.Vector => res.toVector
+          case Types.ListType.List => res
+          case Types.ListType.Seq => res.toSeq
+          case Types.ListType.Vector => res.toVector
       case FormElement.Nullable(_, element) =>
         value match
           case Null => Right(null)
           case _ => element.parseJSONValue(value)
-      case _ => Left(s"Unsupported form element: $formElement")
+      case _ =>
+        Left(s"Unsupported form element: $formElement")
 
   extension (form: Form)
     def formElementsJSONRepr =
@@ -108,6 +119,8 @@ private[guinep] object serialization:
         s"""{ "name": '$name', "type": 'float', "nullable": $nullable }"""
       case FormElement.CheckboxInput(name) =>
         s"""{ "name": '$name', "type": 'checkbox' }"""
+      case FormElement.HiddenInput(name, underlying) =>
+        s"""{ "name": '$name', "type": 'hidden', "value": '$underlying' }"""
       case FormElement.Dropdown(name, options) =>
         // TODO(kπ) this sortBy isn't 100% sure to be working (the only requirement is for the first constructor to not be recursive; this is a graph problem, sorta)
         s"""{ "name": '$name', "type": 'dropdown', "options": [${options.sortBy(_._2).map { case (k, v) => s"""{"name": "$k", "value": ${v.toJSONRepr()}}""" }.mkString(",")}] }"""

@@ -85,6 +85,15 @@ object TestsData {
   def showNullableInt(i: Int | Null): String =
     if i == null then "null" else i.toString
 
+  def factorialBigInt(n: BigInt): BigInt =
+    if n == 0 then 1 else n * factorialBigInt(n - 1)
+
+  def inverseBigDecimal(bd: BigDecimal): BigDecimal =
+    BigDecimal(1) / bd
+
+  def sayBye(unit: Unit): String =
+    "Bye!"
+
   enum IntTree:
     case Leaf
     case Node(left: IntTree, value: Int, right: IntTree)
