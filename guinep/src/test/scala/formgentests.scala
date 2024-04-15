@@ -351,6 +351,39 @@ class FormGenTests extends munit.FunSuite {
     )
   )
 
+  checkGeneratedFormEquals(
+    "printsWeirdGADT",
+    printsWeirdGADT,
+    Form(
+      Seq(
+        FormElement.Dropdown(
+          "g",
+          List(
+            "SomeValue" -> FormElement.FieldSet("value", List(FormElement.TextInput("value"))),
+            "SomeOtherValue" -> FormElement.FieldSet(
+              "value",
+              List(FormElement.NamedRef("value", "java.lang.String"), FormElement.NamedRef("value2", "java.lang.String"))
+            )
+          )
+        )
+      ),
+      Map(
+        "java.lang.String" -> FormElement.TextInput("value")
+      )
+    )
+  )
+
+  checkGeneratedFormEquals(
+    "genericShow[String]",
+    genericShow[String],
+    Form(
+      Seq(
+        FormElement.TextInput("a")
+      ),
+      Map.empty
+    )
+  )
+
   // TODO(kπ) Add test for WeirdGADT
 
   // TODO(kπ) Add test for isInTreeExt

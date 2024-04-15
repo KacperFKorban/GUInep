@@ -53,11 +53,9 @@ def roll6(): Int =
   scala.util.Random.nextInt(6) + 1
 
 sealed trait WeirdGADT[+A]
-case class IntValue(value: Int) extends WeirdGADT[Int]
 case class SomeValue[+A](value: A) extends WeirdGADT[A]
 case class SomeOtherValue[+A, +B](value: A, value2: B) extends WeirdGADT[A]
 
-// This fails on unknown type params
 def printsWeirdGADT(g: WeirdGADT[String]): String = g match
   case SomeValue(value) => s"SomeValue($value)"
   case SomeOtherValue(value, value2) => s"SomeOtherValue($value, $value2)"
@@ -119,6 +117,20 @@ case class TakesUnit(unit: Unit)
 def runTakesUnit(takesUnit: TakesUnit): Unit =
   ()
 
+def genericShow[A](a: A): String =
+  a.toString
+
+sealed trait WeirdGADT1[+A]
+case class IntValue1(value: Int) extends WeirdGADT1[Int]
+case class SomeValue1[+A](value: A) extends WeirdGADT1[A]
+case class SomeOtherValue1[+A, +B](value: A, value2: B) extends WeirdGADT1[A]
+case class SomeListValue1[+A](value: List[A]) extends WeirdGADT1[List[A]]
+
+def printsWeirdGADT1(g: WeirdGADT1[Int]): String = g match
+  case IntValue1(value) => s"IntValue1($value)"
+  case SomeValue1(value) => s"SomeValue($value)"
+  case SomeOtherValue1(value, value2) => s"SomeOtherValue($value, $value2)"
+
 @main
 def run: Unit =
   guinep.web
@@ -147,7 +159,8 @@ def run: Unit =
       inverseBigDecimal,
       sayBye,
       runTakesUnit,
+      printsWeirdGADT,
+      genericShow[String],
       // isInTreeExt
       // addManyParamLists
-      // printsWeirdGADT
     )

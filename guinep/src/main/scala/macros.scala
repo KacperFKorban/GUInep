@@ -200,6 +200,8 @@ private[guinep] object macros {
       val form = Form(inputs, usedFormDecls)
       Expr(form)
 
+    private val tpeGenericFallback = TypeRepr.of[String]
+
     private def appliedChild(childSym: Symbol, parentSym: Symbol, parentArgs: List[TypeRepr]): TypeRepr = childSym.tree match {
       case classDef @ ClassDef(_, _, parents, _, _) =>
         parents
@@ -209,19 +211,46 @@ private[guinep] object macros {
           .collectFirst {
             case AppliedType(tpe, args) if tpe.typeSymbol == parentSym => args
             case tpe if tpe.typeSymbol == parentSym => Nil
-          }.match
+          }.match {
             case None =>
               report.errorAndAbort(s"""PANIC: Could not find applied parent for ${childSym.name}, parents: ${parents.map(_.show).mkString(",")}""", classDef.pos)
             case Some(parentExtendsArgs) =>
-              val childDefArgs = classDef.symbol.primaryConstructor.paramSymss.flatten.filter(_.isTypeParam).map(_.typeRef)
-              val childArgTpes = childDefArgs.map { arg =>
-                arg.substituteTypes(parentExtendsArgs.map(_.typeSymbol), parentArgs)
+              // We want to traverse parentExtendsArgs and parentArgs together and create a map of mappings from elements of childDefArgs to their counterparts
+              // We also need a method of merging two types when they are mapped twice e.g. `Child[T] <: Parent[List[T], T => ()]` and `Parent[List[ScalaNumber], Int => ()]`
+              //   this might map to some king of type bounds (and will also depend on the variance of Parent)
+              // For every element form childDefArgs, that doesn't have a found counterpart, we want to give it a default type (appropriate bound based on variance or String?)
+              // Also, some cases might not be reachable for a given parentArgs e.g. `Child <: Parent[Int]` and `Parent[String]`
+              val childDefArgsSymbols = classDef.symbol.primaryConstructor.paramSymss.flatten.filter(_.isTypeParam)
+              val childParamsMap = collectMappingsFromAppliedParent(childDefArgsSymbols, parentExtendsArgs, parentArgs)
+              val childArgTpes = childDefArgsSymbols.map { arg =>
+                childParamsMap.getOrElse(arg, tpeGenericFallback)
               }
-              // TODO(kπ) might want to handle the case when there are unsubstituted type parameters left
               val childTpe = childSym.typeRef.appliedTo(childArgTpes)
               childTpe
+            }
       case _ =>
         childSym.typeRef
+    }
+
+    // TODO(kπ) this is still missing support for a lot of things (e.g. see comment in @appliedChild)
+    private def collectMappingsFromAppliedParent(
+      childDefArgs: List[Symbol],
+      parentExtendsArgs: List[TypeRepr],
+      parentArgs: List[TypeRepr]
+    ): Map[Symbol, TypeRepr] = {
+      val mappings = mutable.Map.empty[Symbol, TypeRepr]
+      def go(parentExtendsArg: TypeRepr, parentArg: TypeRepr): Unit = (parentExtendsArg, parentArg) match {
+        case (tpe1: TypeRef, tpe2) if childDefArgs.contains(tpe1.typeSymbol) =>
+          mappings.update(tpe1.typeSymbol, tpe2)
+        case (AppliedType(tpe1, args1), AppliedType(tpe2, args2)) if childDefArgs.contains(tpe1.typeSymbol) && args1.length == args2.length =>
+          mappings.update(tpe1.typeSymbol, tpe2)
+          args1.zip(args2).foreach { case (arg1, arg2) => go(arg1, arg2) }
+        case (AppliedType(tpe1, args1), AppliedType(tpe2, args2)) if tpe1.typeSymbol == tpe2.typeSymbol =>
+          args1.zip(args2).foreach { case (arg1, arg2) => go(arg1, arg2) }
+        case _ =>
+      }
+      parentExtendsArgs.zip(parentArgs).foreach { case (arg1, arg2) => go(arg1, arg2) }
+      mappings.toMap
     }
 
     private case class ConstrEntry(definition: Option[Statement], ref: Term)

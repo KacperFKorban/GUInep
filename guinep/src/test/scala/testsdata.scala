@@ -53,11 +53,6 @@ object TestsData {
   def roll6(): Int =
     scala.util.Random.nextInt(6) + 1
 
-  sealed trait WeirdGADT[+A]
-  case class IntValue(value: Int) extends WeirdGADT[Int]
-  case class SomeValue[+A](value: A) extends WeirdGADT[A]
-  case class SomeOtherValue[+A, +B](value: A, value2: B) extends WeirdGADT[A]
-
   def concatAll(elems: List[String]): String =
     elems.mkString
 
@@ -103,10 +98,16 @@ object TestsData {
     case IntTree.Node(left, value, right) =>
       value == elem || isInTree(elem, left) || isInTree(elem, right)
 
-  // This fails on unknown type params
+  sealed trait WeirdGADT[+A]
+  case class SomeValue[+A](value: A) extends WeirdGADT[A]
+  case class SomeOtherValue[+A, +B](value: A, value2: B) extends WeirdGADT[A]
+
   def printsWeirdGADT(g: WeirdGADT[String]): String = g match
     case SomeValue(value) => s"SomeValue($value)"
     case SomeOtherValue(value, value2) => s"SomeOtherValue($value, $value2)"
+
+  def genericShow[A](a: A): String =
+    a.toString
 
   // Can't be handled right now
   extension (elem: Int)

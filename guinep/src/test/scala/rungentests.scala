@@ -256,6 +256,27 @@ class RunGenTests extends munit.FunSuite {
     "false"
   )
 
+  checkGeneratedRunResultEquals(
+    "printsWeirdGADT",
+    printsWeirdGADT,
+    List(Map("name" -> "SomeValue", "value" -> Map("value" -> "hello"))),
+    "SomeValue(hello)"
+  )
+
+  checkGeneratedRunResultEquals(
+    "printsWeirdGADT",
+    printsWeirdGADT,
+    List(Map("name" -> "SomeOtherValue", "value" -> Map("value" -> "hello", "value2" -> "world"))),
+    "SomeOtherValue(hello, world)"
+  )
+
+  checkGeneratedRunResultEquals(
+    "genericShow[String]",
+    genericShow[String],
+    List("hello"),
+    "hello"
+  )
+
   // TODO(kπ) Add test for WeirdGADT
 
   // TODO(kπ) Add test for isInTreeExt

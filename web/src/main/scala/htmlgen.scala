@@ -19,7 +19,7 @@ private[guinep] trait HtmlGen {
           """
           body { font-family: Arial, sans-serif; }
           .sidebar { position: fixed; left: 0; top: 0; width: 200px; height: 100vh; background-color: #f0f0f0; padding: 20px; overflow-y: auto; }
-          .sidebar a { display: block; padding: 10px; margin-bottom: 10px; background-color: #007bff; color: white; text-decoration: none; text-align: center; border-radius: 5px; }
+          .sidebar a { display: block; padding: 10px; margin-bottom: 10px; background-color: #007bff; color: white; text-decoration: none; text-align: center; border-radius: 5px; overflow-x: hidden; text-overflow: ellipsis; }
           .sidebar a:hover { background-color: #0056b3; }
           .main-content { margin-left: 232px; padding: 40px; display: flex; justify-content: center; padding-top: 20px; }
           .form-container { width: 600px; }
@@ -196,7 +196,9 @@ private[guinep] trait HtmlGen {
           const input = document.createElement('input');
           input.type = formElem.type;
           input.name = formElem.name;
-          input.value = formElem.value;
+          if (formElem.value) {
+            input.value = formElem.value;
+          }
           input.id = formElem.name;
           input.placeholder = formElem.name;
           if (formElem.nullable) {
