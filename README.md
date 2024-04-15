@@ -59,10 +59,10 @@ def run =
 ## Current limitations
 
 Currently GUInep doesn't support:
-- Functions with multiple parameter lists (and by extension - extension methods) - #33
-- Fancier GADTs with unobvious inheritance, type bounds and variance - #30
-- Union and intersection types - #44
-- Opaque types - #49
+- Functions with multiple parameter lists (and by extension - extension methods) - https://github.com/KacperFKorban/GUInep/issues/33
+- Fancier GADTs with unobvious inheritance, type bounds and variance - https://github.com/KacperFKorban/GUInep/issues/30
+- Union and intersection types - https://github.com/KacperFKorban/GUInep/issues/44
+- Opaque types - https://github.com/KacperFKorban/GUInep/issues/49
 
 ## Contributing
 
