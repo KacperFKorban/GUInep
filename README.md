@@ -55,3 +55,17 @@ def run =
 ## Demo
 
 ![GUInep_classes_demo](https://github.com/KacperFKorban/GUInep/assets/39772805/556b6c1b-ea72-4089-8cbd-16f680484177)
+
+## Current limitations
+
+Currently GUInep doesn't support:
+- Functions with multiple parameter lists (and by extension - extension methods) - #33
+- Fancier GADTs with unobvious inheritance, type bounds and variance - #30
+- Union and intersection types - #44
+- Opaque types - #49
+
+## Contributing
+
+If you have any ideas on how to improve GUInep, feel free to open an issue.
+
+All bug reports and feature requests are highly appreciated.
