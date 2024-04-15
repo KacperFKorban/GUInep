@@ -12,7 +12,7 @@ ThisBuild / scmInfo := Some(
     ScmInfo(
       url("https://github.com/KacperFKorban/GUInep"),
       "scm:git@github.com:KacperFKorban/GUInep.git",
-      "scm:git:git@github.com:KacperFKorban/GUInep.git"
+      Some("scm:git:git@github.com:KacperFKorban/GUInep.git")
     )
   )
 ThisBuild / homepage := Some(url("https://github.com/KacperFKorban/GUInep"))
