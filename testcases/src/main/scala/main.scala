@@ -1,5 +1,7 @@
 package guinep.compiletest
 
+import com.softwaremill.quicklens.*
+
 def upperCaseText(text: String): String =
   text.toUpperCase
 
@@ -134,6 +136,7 @@ def printsWeirdGADT1(g: WeirdGADT1[Int]): String = g match
 @main
 def run: Unit =
   guinep.web
+    .withModifyConfig(_.modify(_.httpServerConfig).using(_.port(6969)))
     .apply(
       upperCaseText,
       add,
