@@ -23,7 +23,8 @@ def web: GuinepWeb =
   * @param requireNonNullableInputs when set, all non-nullable types will correspond to required inputs in the frontend
   */
 case class GuinepWebConfig(
-  requireNonNullableInputs: Boolean = false
+  requireNonNullableInputs: Boolean = false,
+  httpServerConfig: zio.http.Server.Config = zio.http.Server.Config.default.port(8090)
 )
 
 object GuinepWebConfig:
@@ -56,7 +57,8 @@ private case class GuinepWeb(config: GuinepWebConfig = GuinepWebConfig.default) 
         s"""|Duplicate function names found: ${functionsInfosMap.filter(_._2.size > 1).keys.mkString(", ")}
             |Ignoring duplicates""".stripMargin
       )
-    println("Starting GUInep web server at http://localhost:8090/")
+    val prettyAddress = config.httpServerConfig.address.getAddress().getHostAddress().toString() + ":" + config.httpServerConfig.address.getPort()
+    println(s"Starting GUInep web server at $prettyAddress")
     webgen.genWeb(
       funs = functionsInfos.distinct.map(fun => fun.name -> fun),
       config = config

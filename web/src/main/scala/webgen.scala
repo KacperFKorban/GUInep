@@ -53,6 +53,11 @@ private[guinep] object webgen {
     ).sandbox.toHttpApp
 
     def run =
-      Server.serve(app).provide(Server.defaultWithPort(8090))
+      Server
+        .serve(app)
+        .provide(
+          ZLayer.succeed(config.httpServerConfig),
+          Server.live 
+        )
   }
 }
