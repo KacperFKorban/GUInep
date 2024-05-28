@@ -1,0 +1,14 @@
+body { font-family: Arial, sans-serif; }
+.sidebar { position: fixed; left: 0; top: 0; width: 200px; height: 100vh; background-color: #f0f0f0; padding: 20px; overflow-y: auto; }
+.sidebar a { display: block; padding: 10px; margin-bottom: 10px; background-color: #007bff; color: white; text-decoration: none; text-align: center; border-radius: 5px; overflow-x: hidden; text-overflow: ellipsis; }
+.sidebar a:hover { background-color: #0056b3; }
+.main-content { margin-left: 232px; padding: 40px; display: flex; justify-content: center; padding-top: 20px; }
+.form-container { width: 600px; }
+label { display: inline-block; margin-right: 10px; vertical-align: middle; }
+input:not([type=submit]) { display: inline-block; padding: 8px; margin-bottom: 10px; box-sizing: border-box; }
+input[type=submit] { background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+input[type=submit]:hover { background-color: #45a049; }
+select { display: inline-block; margin-bottom: 10px; padding: 8px; box-sizing: border-box; }
+.result { margin-top: 20px; font-weight: bold; }
+.add-button { text-decoration: none; background-color: #AAAAAA; color: white; padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; }
+.add-button:hover { background-color: #BBBBBB; }
