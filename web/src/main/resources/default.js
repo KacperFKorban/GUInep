@@ -152,12 +152,35 @@ function changeForm(funName, funsToJsonArray, config) {
     submitButton.type = 'submit';
     submitButton.value = 'Submit';
     form.appendChild(submitButton);
+    const progressIndicator = document.createElement('div');
+    progressIndicator.id = 'progress-indicator';
+    progressIndicator.classList.add('progress-indicator');
+    progressIndicator.classList.add('hidden');
+    const spinner = document.createElement('div');
+    spinner.classList.add('spinner');
+    progressIndicator.appendChild(spinner);
+    form.appendChild(progressIndicator);
   }
+}
+
+function clearResult() {
+  document.getElementById("result").textContent = '';
+}
+
+function showProgressIndicator() {
+  document.getElementById('progress-indicator').classList.remove('hidden');
+}
+
+function hideProgressIndicator() {
+  document.getElementById('progress-indicator').classList.add('hidden');
 }
 
 document.addEventListener("DOMContentLoaded", function() {
   document.getElementById("guinepForm").addEventListener("submit", function(e) {
     e.preventDefault(); // Prevent the default form submission and redirect
+
+    showProgressIndicator();
+    clearResult();
 
     const form = this;
     const jsonData = {};
@@ -248,8 +271,12 @@ document.addEventListener("DOMContentLoaded", function() {
     })
     .then(response => response.text())
     .then(data => {
+      hideProgressIndicator();
       document.getElementById("result").textContent = 'Result: ' + data;
     })
-    .catch(error => console.error('Error:', error));
+    .catch(error => {
+      hideProgressIndicator();
+      console.error('Error:', error);
+    });
   });
 });
