@@ -133,6 +133,10 @@ def printsWeirdGADT1(g: WeirdGADT1[Int]): String = g match
   case SomeValue1(value) => s"SomeValue($value)"
   case SomeOtherValue1(value, value2) => s"SomeOtherValue($value, $value2)"
 
+def longRunningGetInt: Int =
+  Thread.sleep(5000)
+  42
+
 @main
 def run: Unit =
   guinep.web
@@ -164,6 +168,7 @@ def run: Unit =
       runTakesUnit,
       printsWeirdGADT,
       genericShow[String],
+      longRunningGetInt,
       // isInTreeExt
       // addManyParamLists
     )

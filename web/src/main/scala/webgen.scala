@@ -33,7 +33,7 @@ private[guinep] object webgen {
   ) extends HtmlGen {
     val funsMap = funs.toMap
 
-    val app: HttpApp[Any] = Routes(
+    val routes = Routes(
       Method.GET / PathCodec.empty ->
         handler(Response.html(generateHtml)),
       Method.GET / string("name") ->
@@ -50,7 +50,9 @@ private[guinep] object webgen {
             result = fun.run(inputsValues)
           } yield Response.text(result)).onError(e => ZIO.debug(e.toString))
         }
-    ).sandbox.toHttpApp
+    ).sandbox @@ Middleware.serveResources(Path.empty / "assets")
+
+    val app: HttpApp[Any] = routes.toHttpApp
 
     def run =
       Server
